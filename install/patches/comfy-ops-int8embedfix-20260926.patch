@@ -1,0 +1,23 @@
+diff --git a/comfy/ops.py b/comfy/ops.py
+index f4ac760..169b5c7 100644
+--- a/comfy/ops.py
++++ b/comfy/ops.py
+@@ -1680,7 +1680,8 @@ def mixed_precision_ops(quant_config={}, compute_dtype=torch.bfloat16, full_prec
+                 # Optimized path: lookup in fp8/int8, dequantize only the selected rows.
+                 if isinstance(weight, QuantizedTensor) and len(self.weight_function) == 0:
+                     with CastBiasWeightContext(self, device=input.device, dtype=weight.dtype, offloadable=True) as (qdata, _bias):
+-                        if isinstance(qdata, QuantizedTensor):
++                        qdata_is_quant = isinstance(qdata, QuantizedTensor)
++                        if qdata_is_quant:
+                             params = qdata._params
+                             scale = params.scale
+                             qdata = qdata._qdata
+@@ -1689,7 +1690,7 @@ def mixed_precision_ops(quant_config={}, compute_dtype=torch.bfloat16, full_prec
+                             scale = None
+ 
+                         # int8: per-row scale possible ConvRot, so let the layout do the gather
+-                        if self.quant_format == "int8_tensorwise":
++                        if self.quant_format == "int8_tensorwise" and qdata_is_quant:
+                             x = get_layout_class(self.layout_type).dequantize_embedding(qdata, params, input)
+                             return x if out_dtype is None else x.to(dtype=out_dtype)
+ 

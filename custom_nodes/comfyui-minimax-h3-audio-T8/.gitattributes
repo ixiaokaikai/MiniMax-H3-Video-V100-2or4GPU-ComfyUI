@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+*.json text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.toml text eol=lf
+
+# Preserve pinned third-party source bytes; audit hashes cover this exact vendored tree.
+h3_t8/vendor/vretoucher_upstream/** -whitespace

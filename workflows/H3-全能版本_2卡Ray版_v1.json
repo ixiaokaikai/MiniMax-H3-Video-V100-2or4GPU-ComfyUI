@@ -1,0 +1,7082 @@
+{
+ "id": "e3f2b845-8f2c-4b5a-9caf-eac1029d3e7e",
+ "revision": 0,
+ "last_node_id": 9139,
+ "last_link_id": 10075,
+ "nodes": [
+  {
+   "id": 92,
+   "type": "SaveVideo",
+   "pos": [
+    3300,
+    710
+   ],
+   "size": [
+    520,
+    1030.608695652174
+   ],
+   "flags": {},
+   "order": 86,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 260
+    },
+    {
+     "localized_name": "文件名前缀",
+     "name": "filename_prefix",
+     "type": "STRING",
+     "widget": {
+      "name": "filename_prefix"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "格式",
+     "name": "format",
+     "type": "COMFY_DYNAMICCOMBO_V3",
+     "widget": {
+      "name": "format"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "编解码器",
+     "name": "format.codec",
+     "type": "COMFY_DYNAMICCOMBO_V3",
+     "widget": {
+      "name": "format.codec"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "编码器",
+     "name": "codec",
+     "shape": 7,
+     "type": "COMFY_DYNAMICCOMBO_V3",
+     "widget": {
+      "name": "codec"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "video",
+     "name": "video",
+     "type": "VIDEO",
+     "links": null
+    }
+   ],
+   "title": "⑫ 保存",
+   "properties": {
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "video/H3_OMNI",
+    "auto",
+    "auto",
+    "auto"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "video/H3_OMNI",
+    "format": "auto",
+    "format.codec": "auto",
+    "codec": "auto"
+   }
+  },
+  {
+   "id": 116,
+   "type": "MarkdownNote",
+   "pos": [
+    3900,
+    1720
+   ],
+   "size": [
+    620,
+    700
+   ],
+   "flags": {},
+   "order": 0,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "★ 使用说明（先看这个）",
+   "properties": {},
+   "widgets_values": [
+    "## H3-全能版本 · 2卡 RayLight 版\n\n**用途**：只用 4 张卡里的 2 张跑（另 2 张留给别的常驻 GPU 服务，或者你就是只有 2 卡）。\n**启动**：`scripts/start_comfyui_2gpu.sh` → 只暴露 ComfyUI 的 cuda:0,1，另两张卡对 ComfyUI 全程不可见、不会被碰。\n切回四卡版：`scripts/stop_comfyui.sh` → `scripts/start_comfyui_4gpu.sh`（四卡版工作流文件独立）。\n\n### 2卡版怎么跑下 20G 主模型 + 14G 编码器（容量账）\n| 项目 | 落点 | 每卡显存 |\n|---|---|---|\n| 主模型 ref2va int8 (20G) | RayLight FSDP 2卡分片 + **CPU offload** | 只放当前算的块 ≈1~3G |\n| 编码器 int4 (14G) | DisTorch2 两卡50/50 + **8G 虚拟池落CPU** | (14-8)/2 = 3G |\n| 视频VAE fp16 (4.9G) + 音频VAE (0.6G) | 主进程 cuda:0 | 5.5G |\n| **合计（cuda:0 最满）** | | **≈10~12G < 16G** ✓ |\n| CPU 内存占用 | 20G主模型分片+8G编码器虚拟池 ≈30G | 系统内存建议 ≥64G ✓ |\n\n### 与四卡版的关键差别\n- `RayInitializer`：GPU 4→**2**，ulysses 4→**2**，**FSDP_CPU_OFFLOAD 打开**（四卡版没开，2卡不开必OOM）\n- 编码器 `CLIPLoaderDisTorch2MultiGPU`×2：分片 4×25%→**2×50%**，virtual_vram_gb 4→**8**\n- 其余（素材开关/提示词/加速链断开方式/输出链绕过ESRGAN直出）与四卡版一致\n- 速度：同参数下约四卡版的 2 倍耗时（推算值，以实测为准）\n- **H3_VRAM_AUTORELEASE=1**：2卡启动脚本会设这个变量，跑完每次自动杀 Ray worker 释放显存，下一次出片全冷启动（多约 2 分钟），但显存不常驻\n\n### 尺寸怎么改\n- 生成分辨率：`#115 ResolutionSelector`\n- 时长：`#131`（秒数，24fps 自动换算帧数）\n- 输出尺寸：`#963`(宽) / `#964`(高)"
+   ],
+   "widgets_values_named": {
+    "text": "## H3-全能版本 · 2卡 RayLight 版\n\n**用途**：只用 4 张卡里的 2 张跑（另 2 张留给别的常驻 GPU 服务，或者你就是只有 2 卡）。\n**启动**：`scripts/start_comfyui_2gpu.sh` → 只暴露 ComfyUI 的 cuda:0,1，另两张卡对 ComfyUI 全程不可见、不会被碰。\n切回四卡版：`scripts/stop_comfyui.sh` → `scripts/start_comfyui_4gpu.sh`（四卡版工作流文件独立）。\n\n### 2卡版怎么跑下 20G 主模型 + 14G 编码器（容量账）\n| 项目 | 落点 | 每卡显存 |\n|---|---|---|\n| 主模型 ref2va int8 (20G) | RayLight FSDP 2卡分片 + **CPU offload** | 只放当前算的块 ≈1~3G |\n| 编码器 int4 (14G) | DisTorch2 两卡50/50 + **8G 虚拟池落CPU** | (14-8)/2 = 3G |\n| 视频VAE fp16 (4.9G) + 音频VAE (0.6G) | 主进程 cuda:0 | 5.5G |\n| **合计（cuda:0 最满）** | | **≈10~12G < 16G** ✓ |\n| CPU 内存占用 | 20G主模型分片+8G编码器虚拟池 ≈30G | 系统内存建议 ≥64G ✓ |\n\n### 与四卡版的关键差别\n- `RayInitializer`：GPU 4→**2**，ulysses 4→**2**，**FSDP_CPU_OFFLOAD 打开**（四卡版没开，2卡不开必OOM）\n- 编码器 `CLIPLoaderDisTorch2MultiGPU`×2：分片 4×25%→**2×50%**，virtual_vram_gb 4→**8**\n- 其余（素材开关/提示词/加速链断开方式/输出链绕过ESRGAN直出）与四卡版一致\n- 速度：同参数下约四卡版的 2 倍耗时（推算值，以实测为准）\n- **H3_VRAM_AUTORELEASE=1**：2卡启动脚本会设这个变量，跑完每次自动杀 Ray worker 释放显存，下一次出片全冷启动（多约 2 分钟），但显存不常驻\n\n### 尺寸怎么改\n- 生成分辨率：`#115 ResolutionSelector`\n- 时长：`#131`（秒数，24fps 自动换算帧数）\n- 输出尺寸：`#963`(宽) / `#964`(高)"
+   },
+   "color": "#222",
+   "bgcolor": "#000"
+  },
+  {
+   "id": 117,
+   "type": "MarkdownNote",
+   "pos": [
+    3900,
+    1260
+   ],
+   "size": [
+    560,
+    420
+   ],
+   "flags": {},
+   "order": 1,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Note: Model Links",
+   "properties": {},
+   "widgets_values": [
+    "## Model Links（模型下载，仓库不带模型，首跑前必读）\n\n本仓库**不包含任何模型文件**。以下模型请从官方 HF 链接自行下载（各模型遵循其发布方许可）：\n\n**diffusion_models（主模型，必需，21G）**\n\n- [minimax_h3_ref2va_pruned_int8_convrot.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors)\n\n**text_encoders（默认编码器，必需，15G）**\n\n- [qwen3vl_32b_minimax_h3_int4_convrot.safetensors](https://huggingface.co/Merserk/MiniMax-H3-INT4-ConvRot/resolve/main/qwen3vl_32b_minimax_h3_int4_convrot.safetensors)\n- 可选：int8 档（把「文本编码器」开关切到 true 才用到，见 README 模型清单）\n\n**vae（必需，5.2G + 0.6G）**\n\n- [minimax_h3_video_vae_fp16.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_fp16.safetensors)\n- [minimax_h3_audio_vae_fp32.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors)\n\n**loras（8 步 turbo，必需，2G）**\n\n- [minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/loras/minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors)\n\n**完整清单（含可选模型与目标目录）见仓库 README「模型清单」一节；`install/download_models.sh` 可一键下载。**\n\n## Using Prompt Embeddings（可选）\n\n官方风格 embedding（如 `minimaxh3_art_is_explosion`）在 Comfy-Org/MiniMax-H3 仓库的 embeddings/ 目录，放进 `ComfyUI/models/embeddings/` 后可在提示词里写 `embedding:minimaxh3_art_is_explosion` 引用。非必需。"
+   ],
+   "widgets_values_named": {
+    "text": "## Model Links（模型下载，仓库不带模型，首跑前必读）\n\n本仓库**不包含任何模型文件**。以下模型请从官方 HF 链接自行下载（各模型遵循其发布方许可）：\n\n**diffusion_models（主模型，必需，21G）**\n\n- [minimax_h3_ref2va_pruned_int8_convrot.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors)\n\n**text_encoders（默认编码器，必需，15G）**\n\n- [qwen3vl_32b_minimax_h3_int4_convrot.safetensors](https://huggingface.co/Merserk/MiniMax-H3-INT4-ConvRot/resolve/main/qwen3vl_32b_minimax_h3_int4_convrot.safetensors)\n- 可选：int8 档（把「文本编码器」开关切到 true 才用到，见 README 模型清单）\n\n**vae（必需，5.2G + 0.6G）**\n\n- [minimax_h3_video_vae_fp16.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_fp16.safetensors)\n- [minimax_h3_audio_vae_fp32.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors)\n\n**loras（8 步 turbo，必需，2G）**\n\n- [minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors](https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/loras/minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors)\n\n**完整清单（含可选模型与目标目录）见仓库 README「模型清单」一节；`install/download_models.sh` 可一键下载。**\n\n## Using Prompt Embeddings（可选）\n\n官方风格 embedding（如 `minimaxh3_art_is_explosion`）在 Comfy-Org/MiniMax-H3 仓库的 embeddings/ 目录，放进 `ComfyUI/models/embeddings/` 后可在提示词里写 `embedding:minimaxh3_art_is_explosion` 引用。非必需。"
+   },
+   "color": "#222",
+   "bgcolor": "#000"
+  },
+  {
+   "id": 119,
+   "type": "VAELoader",
+   "pos": [
+    580,
+    580
+   ],
+   "size": [
+    420,
+    90
+   ],
+   "flags": {},
+   "order": 2,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "vae名称",
+     "name": "vae_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "vae_name"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "VAE",
+     "name": "VAE",
+     "type": "VAE",
+     "links": [
+      251,
+      273
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "VAELoader",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "models": [
+     {
+      "name": "minimax_h3_video_vae_fp16.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_fp16.safetensors",
+      "directory": "vae"
+     }
+    ]
+   },
+   "widgets_values": [
+    "minimax_h3_video_vae_fp16.safetensors"
+   ],
+   "widgets_values_named": {
+    "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+   }
+  },
+  {
+   "id": 120,
+   "type": "VAELoader",
+   "pos": [
+    580,
+    710
+   ],
+   "size": [
+    420,
+    90
+   ],
+   "flags": {},
+   "order": 3,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "vae名称",
+     "name": "vae_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "vae_name"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "VAE",
+     "name": "VAE",
+     "type": "VAE",
+     "links": [
+      250,
+      10006
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "VAELoader",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "models": [
+     {
+      "name": "minimax_h3_audio_vae_fp32.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors",
+      "directory": "vae"
+     }
+    ]
+   },
+   "widgets_values": [
+    "minimax_h3_audio_vae_fp32.safetensors"
+   ],
+   "widgets_values_named": {
+    "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+   }
+  },
+  {
+   "id": 121,
+   "type": "VAEDecodeAudio",
+   "pos": [
+    3300,
+    420
+   ],
+   "size": [
+    380,
+    90
+   ],
+   "flags": {
+    "collapsed": false
+   },
+   "order": 80,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "Latent",
+     "name": "samples",
+     "type": "LATENT",
+     "link": 10074
+    },
+    {
+     "localized_name": "vae",
+     "name": "vae",
+     "type": "VAE",
+     "link": 250
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "音频",
+     "name": "AUDIO",
+     "type": "AUDIO",
+     "links": [
+      10075
+     ]
+    }
+   ],
+   "title": "⑨b 音频解码",
+   "properties": {
+    "Node name for S&R": "VAEDecodeAudio",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   }
+  },
+  {
+   "id": 122,
+   "type": "VAEDecode",
+   "pos": [
+    3300,
+    280
+   ],
+   "size": [
+    380,
+    90
+   ],
+   "flags": {
+    "collapsed": false
+   },
+   "order": 79,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "Latent",
+     "name": "samples",
+     "type": "LATENT",
+     "link": 10073
+    },
+    {
+     "localized_name": "vae",
+     "name": "vae",
+     "type": "VAE",
+     "link": 251
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "links": [
+      10070,
+      10071
+     ]
+    }
+   ],
+   "title": "⑨ 视频解码",
+   "properties": {
+    "Node name for S&R": "VAEDecode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   }
+  },
+  {
+   "id": 123,
+   "type": "KSamplerSelect",
+   "pos": [
+    0,
+    3630
+   ],
+   "size": [
+    400,
+    100
+   ],
+   "flags": {},
+   "order": 4,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "采样器名称",
+     "name": "sampler_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "sampler_name"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "采样器",
+     "name": "SAMPLER",
+     "type": "SAMPLER",
+     "links": [
+      10054,
+      10057
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "KSamplerSelect",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "res_multistep"
+   ],
+   "widgets_values_named": {
+    "sampler_name": "res_multistep"
+   }
+  },
+  {
+   "id": 124,
+   "type": "RayBasicScheduler",
+   "pos": [
+    0,
+    3760
+   ],
+   "size": [
+    400,
+    106
+   ],
+   "flags": {},
+   "order": 71,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "link": 10048
+    },
+    {
+     "localized_name": "scheduler",
+     "name": "scheduler",
+     "type": "COMBO",
+     "widget": {
+      "name": "scheduler"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "steps",
+     "name": "steps",
+     "type": "INT",
+     "widget": {
+      "name": "steps"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "denoise",
+     "name": "denoise",
+     "type": "FLOAT",
+     "widget": {
+      "name": "denoise"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "Sigmas",
+     "name": "SIGMAS",
+     "type": "SIGMAS",
+     "links": null
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "BasicScheduler",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "simple",
+    20,
+    1
+   ],
+   "widgets_values_named": {
+    "scheduler": "simple",
+    "steps": 20,
+    "denoise": 1
+   }
+  },
+  {
+   "id": 125,
+   "type": "XFuserSamplerCustomAdvanced",
+   "pos": [
+    1660,
+    560
+   ],
+   "size": [
+    360,
+    166
+   ],
+   "flags": {},
+   "order": 77,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "guider",
+     "name": "guider",
+     "type": "RAY_GUIDER",
+     "link": 10053
+    },
+    {
+     "localized_name": "sampler",
+     "name": "sampler",
+     "type": "SAMPLER",
+     "link": 10054
+    },
+    {
+     "localized_name": "sigmas",
+     "name": "sigmas",
+     "type": "SIGMAS",
+     "link": 10059
+    },
+    {
+     "localized_name": "latent_image",
+     "name": "latent_image",
+     "type": "LATENT",
+     "link": 10055
+    },
+    {
+     "localized_name": "add_noise",
+     "name": "add_noise",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "add_noise"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "noise_seed",
+     "name": "noise_seed",
+     "type": "INT",
+     "widget": {
+      "name": "noise_seed"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "output",
+     "name": "output",
+     "type": "LATENT",
+     "links": [
+      10063,
+      10073,
+      10074
+     ]
+    },
+    {
+     "localized_name": "denoised_output",
+     "name": "denoised_output",
+     "type": "LATENT",
+     "links": null
+    },
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "links": null
+    }
+   ],
+   "title": "⑧ 采样 (四卡并行)",
+   "properties": {
+    "Node name for S&R": "SamplerCustomAdvanced",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    true,
+    817404717746215,
+    "randomize"
+   ],
+   "widgets_values_named": {
+    "add_noise": true,
+    "noise_seed": 817404717746215,
+    "control_after_generate": "randomize"
+   }
+  },
+  {
+   "id": 126,
+   "type": "RayBasicGuider",
+   "pos": [
+    1660,
+    300
+   ],
+   "size": [
+    360,
+    90
+   ],
+   "flags": {},
+   "order": 76,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "link": 10051
+    },
+    {
+     "localized_name": "conditioning",
+     "name": "conditioning",
+     "type": "CONDITIONING",
+     "link": 10052
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "guider",
+     "name": "guider",
+     "type": "RAY_GUIDER",
+     "links": [
+      10053,
+      10056
+     ]
+    }
+   ],
+   "title": "⑤ Guider (四卡)",
+   "properties": {
+    "Node name for S&R": "BasicGuider",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   }
+  },
+  {
+   "id": 127,
+   "type": "RayUNETLoader",
+   "pos": [
+    580,
+    0
+   ],
+   "size": [
+    420,
+    102
+   ],
+   "flags": {},
+   "order": 64,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "ray_actors_init",
+     "name": "ray_actors_init",
+     "type": "RAY_ACTORS_INIT",
+     "link": 10042
+    },
+    {
+     "localized_name": "lora",
+     "name": "lora",
+     "shape": 7,
+     "type": "RAY_LORA",
+     "link": 10046
+    },
+    {
+     "localized_name": "unet_name",
+     "name": "unet_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "unet_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "weight_dtype",
+     "name": "weight_dtype",
+     "type": "COMBO",
+     "widget": {
+      "name": "weight_dtype"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "links": [
+      10047
+     ]
+    }
+   ],
+   "title": "② 主模型 (int8_convrot · 四卡分片)",
+   "properties": {
+    "Node name for S&R": "UNETLoader"
+   },
+   "widgets_values": [
+    "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "default"
+   ],
+   "widgets_values_named": {
+    "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  {
+   "id": 128,
+   "type": "CLIPLoaderDisTorch2MultiGPU",
+   "pos": [
+    580,
+    260
+   ],
+   "size": [
+    420,
+    202
+   ],
+   "flags": {},
+   "order": 5,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "clip_name",
+     "name": "clip_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "clip_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "type",
+     "name": "type",
+     "type": "COMBO",
+     "widget": {
+      "name": "type"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "device",
+     "name": "device",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "device"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "virtual_vram_gb",
+     "name": "virtual_vram_gb",
+     "shape": 7,
+     "type": "FLOAT",
+     "widget": {
+      "name": "virtual_vram_gb"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "donor_device",
+     "name": "donor_device",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "donor_device"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "expert_mode_allocations",
+     "name": "expert_mode_allocations",
+     "shape": 7,
+     "type": "STRING",
+     "widget": {
+      "name": "expert_mode_allocations"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "eject_models",
+     "name": "eject_models",
+     "shape": 7,
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "eject_models"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "CLIP",
+     "name": "CLIP",
+     "type": "CLIP",
+     "links": [
+      10061
+     ]
+    }
+   ],
+   "title": "文本编码器（GGUF 无需，走原版）",
+   "properties": {
+    "Node name for S&R": "CLIPLoader",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "models": [
+     {
+      "name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "directory": "text_encoders"
+     }
+    ]
+   },
+   "widgets_values": [
+    "qwen3vl_32b_minimax_h3_int4_convrot.safetensors",
+    "minimax",
+    "cuda:0",
+    8,
+    "cpu",
+    "cuda:0,50%;cuda:1,50%",
+    false
+   ],
+   "widgets_values_named": {
+    "clip_name": "qwen3vl_32b_minimax_h3_int4_convrot.safetensors",
+    "type": "minimax",
+    "device": "cuda:0",
+    "virtual_vram_gb": 8,
+    "donor_device": "cpu",
+    "expert_mode_allocations": "cuda:0,50%;cuda:1,50%",
+    "eject_models": false
+   }
+  },
+  {
+   "id": 129,
+   "type": "RandomNoise",
+   "pos": [
+    1660,
+    0
+   ],
+   "size": [
+    360,
+    90
+   ],
+   "flags": {},
+   "order": 6,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "噪波随机种",
+     "name": "noise_seed",
+     "type": "INT",
+     "widget": {
+      "name": "noise_seed"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "噪波",
+     "name": "NOISE",
+     "type": "NOISE",
+     "links": null
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "RandomNoise",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    182711322613361,
+    "randomize"
+   ],
+   "widgets_values_named": {
+    "noise_seed": 182711322613361,
+    "control_after_generate": "randomize"
+   }
+  },
+  {
+   "id": 130,
+   "type": "CreateVideo",
+   "pos": [
+    3300,
+    560
+   ],
+   "size": [
+    380,
+    150
+   ],
+   "flags": {},
+   "order": 83,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "images",
+     "type": "IMAGE",
+     "link": 10072
+    },
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": 10075
+    },
+    {
+     "localized_name": "帧率",
+     "name": "fps",
+     "type": "FLOAT",
+     "widget": {
+      "name": "fps"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "bit_depth",
+     "name": "bit_depth",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "bit_depth"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "color_space",
+     "name": "color_space",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "color_space"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "codec",
+     "name": "codec",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "codec"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "视频",
+     "name": "VIDEO",
+     "type": "VIDEO",
+     "links": [
+      260
+     ]
+    }
+   ],
+   "title": "⑪ 合成视频(带音轨)",
+   "properties": {
+    "Node name for S&R": "CreateVideo",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    24,
+    8,
+    "sRGB",
+    "none"
+   ],
+   "widgets_values_named": {
+    "fps": 24,
+    "bit_depth": 8,
+    "color_space": "sRGB",
+    "codec": "none"
+   }
+  },
+  {
+   "id": 131,
+   "type": "ComfyMathExpression",
+   "pos": [
+    0,
+    680
+   ],
+   "size": [
+    460,
+    74
+   ],
+   "flags": {
+    "collapsed": true
+   },
+   "order": 57,
+   "mode": 0,
+   "inputs": [
+    {
+     "label": "a",
+     "localized_name": "a",
+     "name": "values.a",
+     "type": "FLOAT,INT,BOOLEAN",
+     "link": 261
+    },
+    {
+     "localized_name": "b",
+     "name": "values.b",
+     "shape": 7,
+     "type": "FLOAT,INT,BOOLEAN",
+     "link": null
+    },
+    {
+     "localized_name": "表达式",
+     "name": "expression",
+     "type": "STRING",
+     "widget": {
+      "name": "expression"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "浮点",
+     "name": "FLOAT",
+     "type": "FLOAT",
+     "links": null
+    },
+    {
+     "localized_name": "整数",
+     "name": "INT",
+     "type": "INT",
+     "links": [
+      275
+     ]
+    },
+    {
+     "localized_name": "布尔值",
+     "name": "BOOL",
+     "type": "BOOLEAN",
+     "links": null
+    }
+   ],
+   "title": "① 帧数（17k+5 对齐，H3 要求）",
+   "properties": {
+    "Node name for S&R": "ComfyMathExpression",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "max(5, round(a * 24)) + (5 - (max(5, round(a * 24)) % 17)) % 17"
+   ],
+   "widgets_values_named": {
+    "expression": "max(5, round(a * 24)) + (5 - (max(5, round(a * 24)) % 17)) % 17"
+   }
+  },
+  {
+   "id": 136,
+   "type": "MiniMaxH3ReferenceToVideo",
+   "pos": [
+    1120,
+    450
+   ],
+   "size": [
+    475.6431640625,
+    524
+   ],
+   "flags": {},
+   "order": 75,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "clip",
+     "name": "clip",
+     "type": "CLIP",
+     "link": 300
+    },
+    {
+     "localized_name": "vae",
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE",
+     "link": 273
+    },
+    {
+     "localized_name": "audio_vae",
+     "name": "audio_vae",
+     "shape": 7,
+     "type": "VAE",
+     "link": 10006
+    },
+    {
+     "localized_name": "ref_image_0",
+     "name": "ref_images.ref_image_0",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10009
+    },
+    {
+     "localized_name": "ref_image_1",
+     "name": "ref_images.ref_image_1",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10012
+    },
+    {
+     "localized_name": "ref_image_2",
+     "name": "ref_images.ref_image_2",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10015
+    },
+    {
+     "localized_name": "ref_image_3",
+     "name": "ref_images.ref_image_3",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10018
+    },
+    {
+     "localized_name": "ref_image_4",
+     "name": "ref_images.ref_image_4",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "ref_video_0",
+     "name": "ref_videos.ref_video_0",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10030
+    },
+    {
+     "localized_name": "ref_video_1",
+     "name": "ref_videos.ref_video_1",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10038
+    },
+    {
+     "localized_name": "ref_video_2",
+     "name": "ref_videos.ref_video_2",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "ref_video_audio_0",
+     "name": "ref_video_audios.ref_video_audio_0",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": 10031
+    },
+    {
+     "localized_name": "ref_video_audio_1",
+     "name": "ref_video_audios.ref_video_audio_1",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": 10039
+    },
+    {
+     "localized_name": "ref_video_audio_2",
+     "name": "ref_video_audios.ref_video_audio_2",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": null
+    },
+    {
+     "localized_name": "ref_audio_0",
+     "name": "ref_audios.ref_audio_0",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": 10021
+    },
+    {
+     "localized_name": "ref_audio_1",
+     "name": "ref_audios.ref_audio_1",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": 10024
+    },
+    {
+     "localized_name": "ref_audio_2",
+     "name": "ref_audios.ref_audio_2",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": null
+    },
+    {
+     "localized_name": "提示词",
+     "name": "prompt",
+     "type": "STRING",
+     "widget": {
+      "name": "prompt"
+     },
+     "link": 307
+    },
+    {
+     "localized_name": "宽度",
+     "name": "width",
+     "type": "INT",
+     "widget": {
+      "name": "width"
+     },
+     "link": 276
+    },
+    {
+     "localized_name": "高度",
+     "name": "height",
+     "type": "INT",
+     "widget": {
+      "name": "height"
+     },
+     "link": 277
+    },
+    {
+     "localized_name": "长度",
+     "name": "length",
+     "type": "INT",
+     "widget": {
+      "name": "length"
+     },
+     "link": 275
+    },
+    {
+     "localized_name": "参考图像尺寸",
+     "name": "ref_image_size",
+     "type": "COMBO",
+     "widget": {
+      "name": "ref_image_size"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "正向",
+     "name": "positive",
+     "type": "CONDITIONING",
+     "links": [
+      10052
+     ]
+    },
+    {
+     "localized_name": "Latent",
+     "name": "LATENT",
+     "type": "LATENT",
+     "links": [
+      10055
+     ]
+    }
+   ],
+   "title": "③ 全能参考条件（4图 / 2音频 / 2视频 都接这里 · 靠素材区开关控制）",
+   "properties": {
+    "Node name for S&R": "MiniMaxH3ReferenceToVideo",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.1"
+   },
+   "widgets_values": [
+    "【硬约束】人物外观（脸/五官/发型/体型/服装）一律以 <Picture 1> 为准；<Video 1> 与 <Video 2> 只提供动作与镜头运动，禁止采用其中任何人物的脸、发型或服装。音频以 <Audio 1> 的原声为准，不要另行创作音乐。\n【身份/人物】图1（<Picture 1>）：只参考这张图里这个人的脸、五官、发型、体型与服装，全片都是同一个人，不换脸、不换性别年龄段。\n电影感：傍晚的城市天台，一位长发美女身穿白色连衣裙随音乐起舞，镜头缓缓环绕推进，晚风吹动裙摆与发丝，暖色夕阳逆光勾勒出轮廓。背景音是节奏明快的电子流行乐。",
+    1376,
+    768,
+    73,
+    "match"
+   ],
+   "widgets_values_named": {
+    "prompt": "【硬约束】人物外观（脸/五官/发型/体型/服装）一律以 <Picture 1> 为准；<Video 1> 与 <Video 2> 只提供动作与镜头运动，禁止采用其中任何人物的脸、发型或服装。音频以 <Audio 1> 的原声为准，不要另行创作音乐。\n【身份/人物】图1（<Picture 1>）：只参考这张图里这个人的脸、五官、发型、体型与服装，全片都是同一个人，不换脸、不换性别年龄段。\n电影感：傍晚的城市天台，一位长发美女身穿白色连衣裙随音乐起舞，镜头缓缓环绕推进，晚风吹动裙摆与发丝，暖色夕阳逆光勾勒出轮廓。背景音是节奏明快的电子流行乐。",
+    "width": 1376,
+    "height": 768,
+    "length": 73,
+    "ref_image_size": "match"
+   }
+  },
+  {
+   "id": 140,
+   "type": "MarkdownNote",
+   "pos": [
+    3900,
+    800
+   ],
+   "size": [
+    560,
+    420
+   ],
+   "flags": {},
+   "order": 7,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Note: Size Settings Reference",
+   "properties": {},
+   "widgets_values": [
+    "| megapixels | Aspect | Output (multiple=32) |\n|---|---|---|\n| 0.2 | 16:9 | 608 x 352 |\n| 0.3 | 16:9 | 736 x 416 |\n| 0.4 | 16:9 | 864 x 480 |\n| 0.5 | 16:9 | 960 x 544 |\n| 0.6 | 16:9 | 1056 x 608 |\n| 0.7 | 16:9 | 1152 x 640 |\n| 0.8 | 16:9 | 1216 x 672 |\n| 0.9 | 16:9 | 1280 x 736 |\n| 0.98 | 16:9 | 1344 x 768 (official 768p) |"
+   ],
+   "widgets_values_named": {
+    "text": "| megapixels | Aspect | Output (multiple=32) |\n|---|---|---|\n| 0.2 | 16:9 | 608 x 352 |\n| 0.3 | 16:9 | 736 x 416 |\n| 0.4 | 16:9 | 864 x 480 |\n| 0.5 | 16:9 | 960 x 544 |\n| 0.6 | 16:9 | 1056 x 608 |\n| 0.7 | 16:9 | 1152 x 640 |\n| 0.8 | 16:9 | 1216 x 672 |\n| 0.9 | 16:9 | 1280 x 736 |\n| 0.98 | 16:9 | 1344 x 768 (official 768p) |"
+   },
+   "color": "#222",
+   "bgcolor": "#000"
+  },
+  {
+   "id": 141,
+   "type": "ComfySwitchNode",
+   "pos": [
+    1120,
+    0
+   ],
+   "size": [
+    420,
+    110
+   ],
+   "flags": {},
+   "order": 58,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "RAY_LORA",
+     "link": 10043
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "RAY_LORA",
+     "link": 10044
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10045
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "RAY_LORA",
+     "links": [
+      10046
+     ]
+    }
+   ],
+   "title": "If/Else Switch (model)",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 142,
+   "type": "ComfySwitchNode",
+   "pos": [
+    2160,
+    1712
+   ],
+   "size": [
+    400,
+    100
+   ],
+   "flags": {},
+   "order": 47,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "INT",
+     "link": 284
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "INT",
+     "link": 283
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 291
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "INT",
+     "links": null
+    }
+   ],
+   "title": "If/Else Switch (Steps)",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 143,
+   "type": "PrimitiveInt",
+   "pos": [
+    1640,
+    1712
+   ],
+   "size": [
+    400,
+    100
+   ],
+   "flags": {},
+   "order": 8,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "数值",
+     "name": "value",
+     "type": "INT",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "整数",
+     "name": "INT",
+     "type": "INT",
+     "links": [
+      284
+     ]
+    }
+   ],
+   "title": "Int (Full)",
+   "properties": {
+    "Node name for S&R": "PrimitiveInt",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    20,
+    "fixed"
+   ],
+   "widgets_values_named": {
+    "value": 20,
+    "fixed": "fixed"
+   }
+  },
+  {
+   "id": 144,
+   "type": "PrimitiveInt",
+   "pos": [
+    3200,
+    1712
+   ],
+   "size": [
+    400,
+    100
+   ],
+   "flags": {},
+   "order": 9,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "数值",
+     "name": "value",
+     "type": "INT",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "整数",
+     "name": "INT",
+     "type": "INT",
+     "links": [
+      283
+     ]
+    }
+   ],
+   "title": "Int (Lightning LoRA)",
+   "properties": {
+    "Node name for S&R": "PrimitiveInt",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    8,
+    "fixed"
+   ],
+   "widgets_values_named": {
+    "value": 8,
+    "fixed": "fixed"
+   }
+  },
+  {
+   "id": 145,
+   "type": "RayLoraLoader",
+   "pos": [
+    580,
+    130
+   ],
+   "size": [
+    420,
+    90
+   ],
+   "flags": {},
+   "order": 10,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "prev_ray_lora",
+     "name": "prev_ray_lora",
+     "shape": 7,
+     "type": "RAY_LORA",
+     "link": null
+    },
+    {
+     "localized_name": "lora_name",
+     "name": "lora_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "lora_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "strength_model",
+     "name": "strength_model",
+     "type": "FLOAT",
+     "widget": {
+      "name": "strength_model"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "ray_lora",
+     "name": "ray_lora",
+     "type": "RAY_LORA",
+     "links": [
+      10044
+     ]
+    }
+   ],
+   "title": "③ turbo LoRA 8步 (原节点)",
+   "properties": {
+    "Node name for S&R": "LoraLoaderModelOnly",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "models": [
+     {
+      "name": "minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/loras/minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors",
+      "directory": "loras"
+     }
+    ]
+   },
+   "widgets_values": [
+    "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+    0.75
+   ],
+   "widgets_values_named": {
+    "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+    "strength_model": 0.75
+   }
+  },
+  {
+   "id": 146,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    0,
+    790
+   ],
+   "size": [
+    460,
+    90
+   ],
+   "flags": {},
+   "order": 11,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      291,
+      10045
+     ]
+    }
+   ],
+   "title": "① 【加速开关】开=8步LoRA / 关=官方20步",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    true
+   ],
+   "widgets_values_named": {
+    "value": true
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 147,
+   "type": "TESpeedMiniMaxH3",
+   "pos": [
+    0,
+    3800
+   ],
+   "size": [
+    420,
+    178
+   ],
+   "flags": {},
+   "order": 12,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "link": null
+    },
+    {
+     "localized_name": "processing_control_value",
+     "name": "processing_control_value",
+     "type": "FLOAT",
+     "widget": {
+      "name": "processing_control_value"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "processing_percent_1",
+     "name": "processing_percent_1",
+     "type": "FLOAT",
+     "widget": {
+      "name": "processing_percent_1"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "processing_percent_2",
+     "name": "processing_percent_2",
+     "type": "FLOAT",
+     "widget": {
+      "name": "processing_percent_2"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "mcs",
+     "name": "mcs",
+     "type": "INT",
+     "widget": {
+      "name": "mcs"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "device",
+     "name": "device",
+     "type": "COMBO",
+     "widget": {
+      "name": "device"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "cache_depth",
+     "name": "cache_depth",
+     "shape": 7,
+     "type": "FLOAT",
+     "widget": {
+      "name": "cache_depth"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "模型",
+     "name": "MODEL",
+     "type": "MODEL",
+     "links": null
+    }
+   ],
+   "title": "TE-Speed（已旁路·画质优先）",
+   "properties": {
+    "Node name for S&R": "TESpeedMiniMaxH3",
+    "aux_id": "tl2012tl/TE-Speed-MiniMaxH3",
+    "ver": "beda0e4be76367625b5e82500b7c4867c3d8bbd6"
+   },
+   "widgets_values": [
+    0.085,
+    0.1,
+    0.9,
+    1,
+    "auto",
+    0.75
+   ],
+   "widgets_values_named": {
+    "processing_control_value": 0.085,
+    "processing_percent_1": 0.1,
+    "processing_percent_2": 0.9,
+    "mcs": 1,
+    "device": "auto",
+    "cache_depth": 0.75
+   }
+  },
+  {
+   "id": 149,
+   "type": "RayMiniMaxH3SigmaShift",
+   "pos": [
+    0,
+    3470
+   ],
+   "size": [
+    420,
+    90
+   ],
+   "flags": {},
+   "order": 68,
+   "mode": 4,
+   "inputs": [
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "link": 10047
+    },
+    {
+     "localized_name": "shift_video",
+     "name": "shift_video",
+     "type": "FLOAT",
+     "widget": {
+      "name": "shift_video"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "shift_audio",
+     "name": "shift_audio",
+     "type": "FLOAT",
+     "widget": {
+      "name": "shift_audio"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "links": [
+      10048,
+      10049,
+      10051
+     ]
+    }
+   ],
+   "title": "④ SigmaShift 12/3",
+   "properties": {
+    "Node name for S&R": "MiniMaxH3SigmaShift",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "ue_properties": {
+     "widget_ue_connectable": {},
+     "version": "7.6.2",
+     "input_ue_unconnectable": {}
+    }
+   },
+   "widgets_values": [
+    12,
+    3
+   ],
+   "widgets_values_named": {
+    "shift_video": 12,
+    "shift_audio": 3
+   }
+  },
+  {
+   "id": 150,
+   "type": "CLIPLoaderDisTorch2MultiGPU",
+   "pos": [
+    580,
+    420
+   ],
+   "size": [
+    420,
+    202
+   ],
+   "flags": {},
+   "order": 13,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "clip_name",
+     "name": "clip_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "clip_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "type",
+     "name": "type",
+     "type": "COMBO",
+     "widget": {
+      "name": "type"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "device",
+     "name": "device",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "device"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "virtual_vram_gb",
+     "name": "virtual_vram_gb",
+     "shape": 7,
+     "type": "FLOAT",
+     "widget": {
+      "name": "virtual_vram_gb"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "donor_device",
+     "name": "donor_device",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "donor_device"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "expert_mode_allocations",
+     "name": "expert_mode_allocations",
+     "shape": 7,
+     "type": "STRING",
+     "widget": {
+      "name": "expert_mode_allocations"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "eject_models",
+     "name": "eject_models",
+     "shape": 7,
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "eject_models"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "CLIP",
+     "name": "CLIP",
+     "type": "CLIP",
+     "links": [
+      10062
+     ]
+    }
+   ],
+   "title": "文本编码器（GGUF 无需，走原版）",
+   "properties": {
+    "Node name for S&R": "CLIPLoader",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "models": [
+     {
+      "name": "qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257.safetensors",
+      "directory": "text_encoders"
+     }
+    ]
+   },
+   "widgets_values": [
+    "qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257.safetensors",
+    "minimax",
+    "cuda:0",
+    8,
+    "cpu",
+    "cuda:0,50%;cuda:1,50%",
+    false
+   ],
+   "widgets_values_named": {
+    "clip_name": "qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257.safetensors",
+    "type": "minimax",
+    "device": "cuda:0",
+    "virtual_vram_gb": 8,
+    "donor_device": "cpu",
+    "expert_mode_allocations": "cuda:0,50%;cuda:1,50%",
+    "eject_models": false
+   }
+  },
+  {
+   "id": 151,
+   "type": "ComfySwitchNode",
+   "pos": [
+    1120,
+    300
+   ],
+   "size": [
+    420,
+    110
+   ],
+   "flags": {},
+   "order": 56,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "CLIP",
+     "link": 10061
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "CLIP",
+     "link": 10062
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 299
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "CLIP",
+     "links": [
+      300
+     ]
+    }
+   ],
+   "title": "If/Else Switch (文本编码器)",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 157,
+   "type": "MiniMaxH3ScheduledSolAttentionPatch",
+   "pos": [
+    1120,
+    1490
+   ],
+   "size": [
+    420,
+    342
+   ],
+   "flags": {},
+   "order": 14,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "link": null
+    },
+    {
+     "localized_name": "enabled",
+     "name": "enabled",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "enabled"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "tau_start",
+     "name": "tau_start",
+     "type": "FLOAT",
+     "widget": {
+      "name": "tau_start"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "tau_end",
+     "name": "tau_end",
+     "type": "FLOAT",
+     "widget": {
+      "name": "tau_end"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "curve",
+     "name": "curve",
+     "type": "COMBO",
+     "widget": {
+      "name": "curve"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "min_tokens",
+     "name": "min_tokens",
+     "type": "INT",
+     "widget": {
+      "name": "min_tokens"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "strict",
+     "name": "strict",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "strict"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "dense_percent",
+     "name": "dense_percent",
+     "type": "FLOAT",
+     "widget": {
+      "name": "dense_percent"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "thresh_type",
+     "name": "thresh_type",
+     "type": "COMBO",
+     "widget": {
+      "name": "thresh_type"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "int8_qk",
+     "name": "int8_qk",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "int8_qk"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "int8_pv",
+     "name": "int8_pv",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "int8_pv"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "sink_conditioning",
+     "name": "sink_conditioning",
+     "type": "COMBO",
+     "widget": {
+      "name": "sink_conditioning"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "dense_blocks",
+     "name": "dense_blocks",
+     "type": "STRING",
+     "widget": {
+      "name": "dense_blocks"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "links": null
+    },
+    {
+     "localized_name": "tau_graph",
+     "name": "tau_graph",
+     "type": "IMAGE",
+     "links": null
+    }
+   ],
+   "title": "SOL-Attn 收严档",
+   "properties": {
+    "Node name for S&R": "MiniMaxH3ScheduledSolAttentionPatch"
+   },
+   "widgets_values": [
+    true,
+    1,
+    0.5,
+    "linear",
+    8192,
+    false,
+    0.2,
+    "diag",
+    false,
+    false,
+    "exact_kv",
+    "0-1,-1"
+   ],
+   "widgets_values_named": {
+    "enabled": true,
+    "tau_start": 1,
+    "tau_end": 0.5,
+    "curve": "linear",
+    "min_tokens": 8192,
+    "strict": false,
+    "dense_percent": 0.2,
+    "thresh_type": "diag",
+    "int8_qk": false,
+    "int8_pv": false,
+    "sink_conditioning": "exact_kv",
+    "dense_blocks": "0-1,-1"
+   }
+  },
+  {
+   "id": 159,
+   "type": "MiniMaxH3DualClockSamplerT8",
+   "pos": [
+    1700,
+    830
+   ],
+   "size": [
+    360,
+    194
+   ],
+   "flags": {},
+   "order": 15,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "link": null
+    },
+    {
+     "localized_name": "av_latent",
+     "name": "av_latent",
+     "type": "LATENT",
+     "link": null
+    },
+    {
+     "localized_name": "steps",
+     "name": "steps",
+     "type": "INT",
+     "widget": {
+      "name": "steps"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "shift_video",
+     "name": "shift_video",
+     "type": "FLOAT",
+     "widget": {
+      "name": "shift_video"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "shift_audio",
+     "name": "shift_audio",
+     "type": "FLOAT",
+     "widget": {
+      "name": "shift_audio"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "sampler / 采样器",
+     "name": "sampler_name",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "sampler_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "scheduler / 调度器",
+     "name": "scheduler",
+     "shape": 7,
+     "type": "COMBO",
+     "widget": {
+      "name": "scheduler"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "links": null
+    },
+    {
+     "localized_name": "sampler",
+     "name": "sampler",
+     "type": "SAMPLER",
+     "links": null
+    },
+    {
+     "localized_name": "sigmas",
+     "name": "sigmas",
+     "type": "SIGMAS",
+     "links": null
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "MiniMaxH3DualClockSamplerT8"
+   },
+   "widgets_values": [
+    8,
+    12,
+    3,
+    "euler",
+    "beta"
+   ],
+   "widgets_values_named": {
+    "steps": 8,
+    "shift_video": 12,
+    "shift_audio": 3,
+    "sampler_name": "euler",
+    "scheduler": "beta"
+   }
+  },
+  {
+   "id": 901,
+   "type": "SplitSigmas",
+   "pos": [
+    1660,
+    430
+   ],
+   "size": [
+    360,
+    90
+   ],
+   "flags": {},
+   "order": 74,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "Sigmas",
+     "name": "sigmas",
+     "type": "SIGMAS",
+     "link": 10050
+    },
+    {
+     "localized_name": "步数",
+     "name": "step",
+     "type": "INT",
+     "widget": {
+      "name": "step"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "高Sigmas",
+     "name": "high_sigmas",
+     "type": "SIGMAS",
+     "links": [
+      10059
+     ]
+    },
+    {
+     "localized_name": "低Sigmas",
+     "name": "low_sigmas",
+     "type": "SIGMAS",
+     "links": [
+      10060
+     ]
+    }
+   ],
+   "title": "⑦ 切成两段(此版只用第一段)",
+   "properties": {
+    "Node name for S&R": "SplitSigmas",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "ue_properties": {
+     "widget_ue_connectable": {},
+     "input_ue_unconnectable": {},
+     "version": "7.5.2"
+    },
+    "widget_ue_connectable": {}
+   },
+   "widgets_values": [
+    8
+   ],
+   "widgets_values_named": {
+    "step": 8
+   },
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 902,
+   "type": "LTXVSeparateAVLatent",
+   "pos": [
+    3300,
+    0
+   ],
+   "size": [
+    360,
+    90
+   ],
+   "flags": {},
+   "order": 78,
+   "mode": 2,
+   "inputs": [
+    {
+     "label": "av_latent",
+     "localized_name": "音视频潜空间",
+     "name": "av_latent",
+     "type": "LATENT",
+     "link": 10063
+    }
+   ],
+   "outputs": [
+    {
+     "label": "video_latent",
+     "localized_name": "video_latent",
+     "name": "video_latent",
+     "type": "LATENT",
+     "links": [
+      9004
+     ]
+    },
+    {
+     "label": "audio_latent",
+     "localized_name": "audio_latent",
+     "name": "audio_latent",
+     "type": "LATENT",
+     "links": [
+      9006
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LTXVSeparateAVLatent",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "ue_properties": {
+     "widget_ue_connectable": {},
+     "input_ue_unconnectable": {},
+     "version": "7.5.2"
+    },
+    "widget_ue_connectable": {}
+   },
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 903,
+   "type": "MinimaxH3LatentUpscalerNode3D",
+   "pos": [
+    470,
+    3180
+   ],
+   "size": [
+    360,
+    130
+   ],
+   "flags": {},
+   "order": 81,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "latent",
+     "name": "latent",
+     "type": "LATENT",
+     "link": 9004
+    },
+    {
+     "localized_name": "model_name",
+     "name": "model_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "model_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "scale",
+     "name": "scale",
+     "type": "FLOAT",
+     "widget": {
+      "name": "scale"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "device",
+     "name": "device",
+     "type": "COMBO",
+     "widget": {
+      "name": "device"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "precision",
+     "name": "precision",
+     "type": "COMBO",
+     "widget": {
+      "name": "precision"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "Latent",
+     "name": "LATENT",
+     "type": "LATENT",
+     "links": [
+      9005
+     ]
+    }
+   ],
+   "title": "潜空间 ×2 放大",
+   "properties": {
+    "Node name for S&R": "MinimaxH3LatentUpscalerNode3D"
+   },
+   "widgets_values": [
+    "minimax_h3_latent_upscaler_3d_fp16.safetensors",
+    2,
+    "cuda",
+    "fp32"
+   ],
+   "widgets_values_named": {
+    "model_name": "minimax_h3_latent_upscaler_3d_fp16.safetensors",
+    "scale": 2,
+    "device": "cuda",
+    "precision": "fp32"
+   }
+  },
+  {
+   "id": 904,
+   "type": "LTXVConcatAVLatent",
+   "pos": [
+    3300,
+    140
+   ],
+   "size": [
+    360,
+    90
+   ],
+   "flags": {},
+   "order": 84,
+   "mode": 2,
+   "inputs": [
+    {
+     "label": "video_latent",
+     "localized_name": "video_latent",
+     "name": "video_latent",
+     "type": "LATENT",
+     "link": 9005
+    },
+    {
+     "label": "audio_latent",
+     "localized_name": "audio_latent",
+     "name": "audio_latent",
+     "type": "LATENT",
+     "link": 9006
+    }
+   ],
+   "outputs": [
+    {
+     "label": "latent",
+     "localized_name": "latent",
+     "name": "latent",
+     "type": "LATENT",
+     "links": [
+      10058
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LTXVConcatAVLatent",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "ue_properties": {
+     "widget_ue_connectable": {},
+     "input_ue_unconnectable": {},
+     "version": "7.5.2"
+    },
+    "widget_ue_connectable": {}
+   },
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 905,
+   "type": "XFuserSamplerCustomAdvanced",
+   "pos": [
+    470,
+    3340
+   ],
+   "size": [
+    380,
+    347
+   ],
+   "flags": {},
+   "order": 87,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "guider",
+     "name": "guider",
+     "type": "RAY_GUIDER",
+     "link": 10056
+    },
+    {
+     "localized_name": "sampler",
+     "name": "sampler",
+     "type": "SAMPLER",
+     "link": 10057
+    },
+    {
+     "localized_name": "sigmas",
+     "name": "sigmas",
+     "type": "SIGMAS",
+     "link": 10060
+    },
+    {
+     "localized_name": "latent_image",
+     "name": "latent_image",
+     "type": "LATENT",
+     "link": 10058
+    },
+    {
+     "localized_name": "add_noise",
+     "name": "add_noise",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "add_noise"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "noise_seed",
+     "name": "noise_seed",
+     "type": "INT",
+     "widget": {
+      "name": "noise_seed"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "output",
+     "name": "output",
+     "type": "LATENT",
+     "links": []
+    },
+    {
+     "localized_name": "denoised_output",
+     "name": "denoised_output",
+     "type": "LATENT",
+     "links": null
+    },
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "links": null
+    }
+   ],
+   "title": "第二阶段采样（放大后 1 步收尾）",
+   "properties": {
+    "Node name for S&R": "SamplerCustomAdvanced"
+   },
+   "widgets_values": [
+    true,
+    796808237496663,
+    "randomize"
+   ],
+   "widgets_values_named": {
+    "add_noise": true,
+    "noise_seed": 796808237496663,
+    "control_after_generate": "randomize"
+   }
+  },
+  {
+   "id": 961,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    0,
+    1050
+   ],
+   "size": [
+    460,
+    90
+   ],
+   "flags": {},
+   "order": 16,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      9601
+     ]
+    }
+   ],
+   "title": "① 【放大开关】false=不放大(快) / true=走ESRGAN放大",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 962,
+   "type": "UpscaleModelLoader",
+   "pos": [
+    2140,
+    0
+   ],
+   "size": [
+    460,
+    90
+   ],
+   "flags": {},
+   "order": 17,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "模型名称",
+     "name": "model_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "model_name"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "放大模型",
+     "name": "UPSCALE_MODEL",
+     "type": "UPSCALE_MODEL",
+     "links": [
+      9602
+     ]
+    }
+   ],
+   "title": "① 放大模型（ESRGAN 权重）",
+   "properties": {
+    "Node name for S&R": "UpscaleModelLoader",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "RealESRGAN_x4plus.pth"
+   ],
+   "widgets_values_named": {
+    "model_name": "RealESRGAN_x4plus.pth"
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 963,
+   "type": "PrimitiveInt",
+   "pos": [
+    0,
+    1310
+   ],
+   "size": [
+    460,
+    90
+   ],
+   "flags": {},
+   "order": 18,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "数值",
+     "name": "value",
+     "type": "INT",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "整数",
+     "name": "INT",
+     "type": "INT",
+     "links": [
+      9603,
+      10068
+     ]
+    }
+   ],
+   "title": "① 放大后宽（默认 1216 = 底宽×2）",
+   "properties": {
+    "Node name for S&R": "PrimitiveInt",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    1280,
+    "fixed"
+   ],
+   "widgets_values_named": {
+    "value": 1280,
+    "fixed": "fixed"
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 964,
+   "type": "PrimitiveInt",
+   "pos": [
+    0,
+    1440
+   ],
+   "size": [
+    460,
+    90
+   ],
+   "flags": {},
+   "order": 19,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "数值",
+     "name": "value",
+     "type": "INT",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "整数",
+     "name": "INT",
+     "type": "INT",
+     "links": [
+      9604,
+      10069
+     ]
+    }
+   ],
+   "title": "① 放大后高（默认 704 = 底高×2）",
+   "properties": {
+    "Node name for S&R": "PrimitiveInt",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    720,
+    "fixed"
+   ],
+   "widgets_values_named": {
+    "value": 720,
+    "fixed": "fixed"
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 965,
+   "type": "ImageUpscaleWithModel",
+   "pos": [
+    2140,
+    140
+   ],
+   "size": [
+    420,
+    90
+   ],
+   "flags": {},
+   "order": 82,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "放大模型",
+     "name": "upscale_model",
+     "type": "UPSCALE_MODEL",
+     "link": 9602
+    },
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "IMAGE",
+     "link": 10070
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "links": [
+      9606
+     ]
+    }
+   ],
+   "title": "⑤ 图像空间超分 ×4（不碰 latent）",
+   "properties": {
+    "Node name for S&R": "ImageUpscaleWithModel",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 966,
+   "type": "ImageScale",
+   "pos": [
+    2140,
+    290
+   ],
+   "size": [
+    420,
+    130
+   ],
+   "flags": {},
+   "order": 85,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "IMAGE",
+     "link": 9606
+    },
+    {
+     "localized_name": "缩放算法",
+     "name": "upscale_method",
+     "type": "COMBO",
+     "widget": {
+      "name": "upscale_method"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "宽度",
+     "name": "width",
+     "type": "INT",
+     "widget": {
+      "name": "width"
+     },
+     "link": 9603
+    },
+    {
+     "localized_name": "高度",
+     "name": "height",
+     "type": "INT",
+     "widget": {
+      "name": "height"
+     },
+     "link": 9604
+    },
+    {
+     "localized_name": "裁剪",
+     "name": "crop",
+     "type": "COMBO",
+     "widget": {
+      "name": "crop"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "links": [
+      9608
+     ]
+    }
+   ],
+   "title": "⑤ 缩到「放大后宽×高」（默认 lanczos）",
+   "properties": {
+    "Node name for S&R": "ImageScale",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "lanczos",
+    1216,
+    704,
+    "disabled"
+   ],
+   "widgets_values_named": {
+    "upscale_method": "lanczos",
+    "width": 1216,
+    "height": 704,
+    "crop": "disabled"
+   },
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 967,
+   "type": "ComfySwitchNode",
+   "pos": [
+    2140,
+    430
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 88,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 10067
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": 9608
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 9601
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": []
+    }
+   ],
+   "title": "⑥ 放大开关切换（false=原图 / true=放大图）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 968,
+   "type": "MarkdownNote",
+   "pos": [
+    3900,
+    -60
+   ],
+   "size": [
+    740,
+    820
+   ],
+   "flags": {},
+   "order": 20,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "📖 怎么用（全能版 · 4图 / 2音频 / 2视频 · 每个素材一个开关）",
+   "properties": {
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0",
+    "Node name for S&R": "MarkdownNote"
+   },
+   "widgets_values": [
+    "# 📖 全能版怎么用（4 图 / 2 音频 / 2 视频 · 素材全开关）\n\n## 🎛 一句话\n**素材全部预先接好、固定不动。用不用某个素材，只看「素材区」里它的开关（true/false）—— 不用再连线断线。**\n\n## ① 每个素材一个开关\n| 开关（素材区里） | 对应素材 | 出厂默认 |\n|---|---|---|\n| 【图1 开关】 | 图1 · 人物/身份参考 | **true（开）** |\n| 【图2 开关】/【图3】/【图4】 | 图2/3/4 · 产品/场景/风格等 | false（关） |\n| 【音频1 开关】/【音频2】 | 独立音频参考（音色/内容） | false（关） |\n| 【视频1 开关】/【视频2】 | 视频参考（帧 + 伴音，一个开关管整段） | false（关） |\n\n**关 = 完全不读**：开关 → 闸门（If/Else Switch，惰性节点）。关掉时闸门输出空值 `None`，\n① 装载器**根本不会被执行**（不会去读文件），② 主节点直接跳过这个素材（H3 源码里 `if img is None: continue`）。\n所以多挂几个关着的素材，**不会多花一点时间**。\n开着才会有成本：每张参考图都会参与**每一步采样**，多开一张明显变慢（视频最贵）。\n\n## 📂 素材在哪换\n「素材区」（⑥ 那块，在下方）里点文件名即可：\n- 图：`图1/2/3/4` 装载器（png/jpg…）\n- 音频：`音频1/2` 装载器（wav/mp3…）\n- 视频：`视频1/2` 装载器（mp4…）→ 后面「裁切」（默认取前 5 秒）→「拆：参考帧 + 伴音」\n  （H3 参考视频要求 **24fps、2–15 秒**；先拖文件进节点再改文件名也行）\n\n## 🏷 提示词里怎么引用\n按「接入顺序」编号，图用 `<Picture n>`，音频/视频伴音用 `<Audio n>`，视频用 `<Video k>`：\n- 只开图1 → 写 `<Picture 1>`（默认提示词就是这么写的）\n- 开了图1+图2 → 图2 就是 `<Picture 2>`，依此类推\n- 视频的伴音会自己占一个 `<Audio n>` 标签（排在它对应的 `<Video k>` 前面）\n- **标签和实际开的素材必须对得上**，不然参考会变弱/串味\n\n## ⚙️ 其它旋钮\n| 旋钮 | 说明 |\n|---|---|\n| 提示词 | 只改 ① 面板那个；136 号节点里的文字被连线接管，改了没用 |\n| 分辨率 megapixels | 0.2→608×352 / 0.4→864×480 / 0.6→1056×608 / 0.9→1280×720 |\n| 时长（秒） | 自动换算帧数（24fps，向上取到 17k+5） |\n| 加速开关 | true=8步LoRA（快，推荐）/ false=官方20步（慢一倍以上） |\n| 文本编码器 | false=int4（省内存，默认）/ true=int8 无审查档（已给上游 int8 解量化 bug 打补丁，带参考图也能跑了） |\n| 放大开关 | false=底子分辨率直出 / true=走 ESRGAN 图像空间超分（不碰潜空间，不会花屏） |\n| ref_image_size | `match` 快（参考缩到出片分辨率），`max` 更像本人但慢好几倍 |\n\n## 🧪 最省档（只验证\"参考到底有没有生效\"）\n`0.2~0.3MP + 时长 2 + 加速开 + 放大关 + 只开图1` ≈ 2 分钟出片。\n\n## 🗑 本版删掉了什么\n整块**面部修复**（含它自己的开关、修复提示词、检测/贴回/审计等 15 个节点）已删除。\n出帧现在是：解码 → （可选 ESRGAN 放大）→ 直接进 CreateVideo。想换脸就换参考图，别修。\n"
+   ],
+   "widgets_values_named": {
+    "text": "# 📖 全能版怎么用（4 图 / 2 音频 / 2 视频 · 素材全开关）\n\n## 🎛 一句话\n**素材全部预先接好、固定不动。用不用某个素材，只看「素材区」里它的开关（true/false）—— 不用再连线断线。**\n\n## ① 每个素材一个开关\n| 开关（素材区里） | 对应素材 | 出厂默认 |\n|---|---|---|\n| 【图1 开关】 | 图1 · 人物/身份参考 | **true（开）** |\n| 【图2 开关】/【图3】/【图4】 | 图2/3/4 · 产品/场景/风格等 | false（关） |\n| 【音频1 开关】/【音频2】 | 独立音频参考（音色/内容） | false（关） |\n| 【视频1 开关】/【视频2】 | 视频参考（帧 + 伴音，一个开关管整段） | false（关） |\n\n**关 = 完全不读**：开关 → 闸门（If/Else Switch，惰性节点）。关掉时闸门输出空值 `None`，\n① 装载器**根本不会被执行**（不会去读文件），② 主节点直接跳过这个素材（H3 源码里 `if img is None: continue`）。\n所以多挂几个关着的素材，**不会多花一点时间**。\n开着才会有成本：每张参考图都会参与**每一步采样**，多开一张明显变慢（视频最贵）。\n\n## 📂 素材在哪换\n「素材区」（⑥ 那块，在下方）里点文件名即可：\n- 图：`图1/2/3/4` 装载器（png/jpg…）\n- 音频：`音频1/2` 装载器（wav/mp3…）\n- 视频：`视频1/2` 装载器（mp4…）→ 后面「裁切」（默认取前 5 秒）→「拆：参考帧 + 伴音」\n  （H3 参考视频要求 **24fps、2–15 秒**；先拖文件进节点再改文件名也行）\n\n## 🏷 提示词里怎么引用\n按「接入顺序」编号，图用 `<Picture n>`，音频/视频伴音用 `<Audio n>`，视频用 `<Video k>`：\n- 只开图1 → 写 `<Picture 1>`（默认提示词就是这么写的）\n- 开了图1+图2 → 图2 就是 `<Picture 2>`，依此类推\n- 视频的伴音会自己占一个 `<Audio n>` 标签（排在它对应的 `<Video k>` 前面）\n- **标签和实际开的素材必须对得上**，不然参考会变弱/串味\n\n## ⚙️ 其它旋钮\n| 旋钮 | 说明 |\n|---|---|\n| 提示词 | 只改 ① 面板那个；136 号节点里的文字被连线接管，改了没用 |\n| 分辨率 megapixels | 0.2→608×352 / 0.4→864×480 / 0.6→1056×608 / 0.9→1280×720 |\n| 时长（秒） | 自动换算帧数（24fps，向上取到 17k+5） |\n| 加速开关 | true=8步LoRA（快，推荐）/ false=官方20步（慢一倍以上） |\n| 文本编码器 | false=int4（省内存，默认）/ true=int8 无审查档（已给上游 int8 解量化 bug 打补丁，带参考图也能跑了） |\n| 放大开关 | false=底子分辨率直出 / true=走 ESRGAN 图像空间超分（不碰潜空间，不会花屏） |\n| ref_image_size | `match` 快（参考缩到出片分辨率），`max` 更像本人但慢好几倍 |\n\n## 🧪 最省档（只验证\"参考到底有没有生效\"）\n`0.2~0.3MP + 时长 2 + 加速开 + 放大关 + 只开图1` ≈ 2 分钟出片。\n\n## 🗑 本版删掉了什么\n整块**面部修复**（含它自己的开关、修复提示词、检测/贴回/审计等 15 个节点）已删除。\n出帧现在是：解码 → （可选 ESRGAN 放大）→ 直接进 CreateVideo。想换脸就换参考图，别修。\n"
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 9101,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    4330
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 61,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10008
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10010
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": [
+      10009
+     ]
+    }
+   ],
+   "title": "③ 图1 闸门（关=空，图不会被读）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9102,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    4280
+   ],
+   "size": [
+    470,
+    90
+   ],
+   "flags": {},
+   "order": 21,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10010
+     ]
+    }
+   ],
+   "title": "① 【图1 开关】true=读图1 / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    true
+   ],
+   "widgets_values_named": {
+    "value": true
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9103,
+   "type": "LoadImage",
+   "pos": [
+    0,
+    4720
+   ],
+   "size": [
+    430,
+    370
+   ],
+   "flags": {},
+   "order": 22,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "COMBO",
+     "widget": {
+      "name": "image"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择文件上传",
+     "name": "upload",
+     "type": "IMAGEUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10011
+     ]
+    },
+    {
+     "localized_name": "遮罩",
+     "name": "MASK",
+     "type": "MASK",
+     "slot_index": 1,
+     "links": null
+    }
+   ],
+   "title": "③ 图2 · 参考图（点文件名换图 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "widgets_values": [
+    "h3_frame_ref_1.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "h3_frame_ref_1.png",
+    "upload": "image"
+   }
+  },
+  {
+   "id": 9104,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    4790
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 49,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10011
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10013
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": [
+      10012
+     ]
+    }
+   ],
+   "title": "③ 图2 闸门（关=空，图不会被读）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9105,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    4740
+   ],
+   "size": [
+    470,
+    90
+   ],
+   "flags": {},
+   "order": 23,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10013
+     ]
+    }
+   ],
+   "title": "① 【图2 开关】true=读图2 / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9106,
+   "type": "LoadImage",
+   "pos": [
+    0,
+    5180
+   ],
+   "size": [
+    430,
+    370
+   ],
+   "flags": {},
+   "order": 24,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "COMBO",
+     "widget": {
+      "name": "image"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择文件上传",
+     "name": "upload",
+     "type": "IMAGEUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10014
+     ]
+    },
+    {
+     "localized_name": "遮罩",
+     "name": "MASK",
+     "type": "MASK",
+     "slot_index": 1,
+     "links": null
+    }
+   ],
+   "title": "③ 图3 · 参考图（点文件名换图 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "widgets_values": [
+    "h3_frame_ref_2.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "h3_frame_ref_2.png",
+    "upload": "image"
+   }
+  },
+  {
+   "id": 9107,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    5250
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 50,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10014
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10016
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": [
+      10015
+     ]
+    }
+   ],
+   "title": "③ 图3 闸门（关=空，图不会被读）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9108,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    5200
+   ],
+   "size": [
+    470,
+    90
+   ],
+   "flags": {},
+   "order": 25,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10016
+     ]
+    }
+   ],
+   "title": "① 【图3 开关】true=读图3 / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9109,
+   "type": "LoadImage",
+   "pos": [
+    0,
+    5640
+   ],
+   "size": [
+    430,
+    370
+   ],
+   "flags": {},
+   "order": 26,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "COMBO",
+     "widget": {
+      "name": "image"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择文件上传",
+     "name": "upload",
+     "type": "IMAGEUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10017
+     ]
+    },
+    {
+     "localized_name": "遮罩",
+     "name": "MASK",
+     "type": "MASK",
+     "slot_index": 1,
+     "links": null
+    }
+   ],
+   "title": "③ 图4 · 参考图（点文件名换图 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "widgets_values": [
+    "h3_frame_ref_3.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "h3_frame_ref_3.png",
+    "upload": "image"
+   }
+  },
+  {
+   "id": 9110,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    5710
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 51,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10017
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10019
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": [
+      10018
+     ]
+    }
+   ],
+   "title": "③ 图4 闸门（关=空，图不会被读）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9111,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    5660
+   ],
+   "size": [
+    470,
+    90
+   ],
+   "flags": {},
+   "order": 27,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10019
+     ]
+    }
+   ],
+   "title": "① 【图4 开关】true=读图4 / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9112,
+   "type": "LoadAudio",
+   "pos": [
+    0,
+    6100
+   ],
+   "size": [
+    430,
+    136
+   ],
+   "flags": {},
+   "order": 28,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "type": "COMBO",
+     "widget": {
+      "name": "audio"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "音频UI",
+     "name": "audioUI",
+     "type": "AUDIO_UI",
+     "widget": {
+      "name": "audioUI"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择文件上传",
+     "name": "upload",
+     "type": "AUDIOUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "音频",
+     "name": "AUDIO",
+     "type": "AUDIO",
+     "links": [
+      10020
+     ]
+    }
+   ],
+   "title": "③ 音频1 · 音色/内容参考（点文件名换音频 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadAudio",
+    "cnr_id": "comfy-core"
+   },
+   "widgets_values": [
+    "h3_ref_voice_1.wav",
+    null,
+    null
+   ],
+   "widgets_values_named": {
+    "audio": "h3_ref_voice_1.wav",
+    "upload": null
+   }
+  },
+  {
+   "id": 9113,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    6130
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 52,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10020
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10022
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "AUDIO",
+     "links": [
+      10021
+     ]
+    }
+   ],
+   "title": "③ 音频1 闸门（关=空，音频不会被读）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9114,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    6100
+   ],
+   "size": [
+    470,
+    90
+   ],
+   "flags": {},
+   "order": 29,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10022
+     ]
+    }
+   ],
+   "title": "① 【音频1 开关】true=读音频1 / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9115,
+   "type": "LoadAudio",
+   "pos": [
+    0,
+    6560
+   ],
+   "size": [
+    430,
+    136
+   ],
+   "flags": {},
+   "order": 30,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "type": "COMBO",
+     "widget": {
+      "name": "audio"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "音频UI",
+     "name": "audioUI",
+     "type": "AUDIO_UI",
+     "widget": {
+      "name": "audioUI"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择文件上传",
+     "name": "upload",
+     "type": "AUDIOUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "音频",
+     "name": "AUDIO",
+     "type": "AUDIO",
+     "links": [
+      10023
+     ]
+    }
+   ],
+   "title": "③ 音频2 · 音色/内容参考（点文件名换音频 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadAudio",
+    "cnr_id": "comfy-core"
+   },
+   "widgets_values": [
+    "ref_audio_2.wav",
+    null,
+    null
+   ],
+   "widgets_values_named": {
+    "audio": "ref_audio_2.wav",
+    "upload": null
+   }
+  },
+  {
+   "id": 9116,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    6590
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 53,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10023
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10025
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "AUDIO",
+     "links": [
+      10024
+     ]
+    }
+   ],
+   "title": "③ 音频2 闸门（关=空，音频不会被读）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9117,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    6560
+   ],
+   "size": [
+    470,
+    90
+   ],
+   "flags": {},
+   "order": 31,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10025
+     ]
+    }
+   ],
+   "title": "① 【音频2 开关】true=读音频2 / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9119,
+   "type": "Video Slice",
+   "pos": [
+    0,
+    7370
+   ],
+   "size": [
+    430,
+    238
+   ],
+   "flags": {},
+   "order": 59,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 10026
+    },
+    {
+     "localized_name": "起始时间",
+     "name": "start_time",
+     "type": "FLOAT",
+     "widget": {
+      "name": "start_time"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "时长",
+     "name": "duration",
+     "type": "FLOAT",
+     "widget": {
+      "name": "duration"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "严格时长",
+     "name": "strict_duration",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "strict_duration"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "视频",
+     "name": "VIDEO",
+     "type": "VIDEO",
+     "links": [
+      10027
+     ]
+    }
+   ],
+   "title": "③ 视频1 裁切（默认取前 5 秒）",
+   "properties": {
+    "Node name for S&R": "Video Slice",
+    "cnr_id": "comfy-core"
+   },
+   "widgets_values": [
+    0,
+    0.25,
+    false
+   ],
+   "widgets_values_named": {
+    "start_time": 0,
+    "duration": 0.25,
+    "strict_duration": false
+   }
+  },
+  {
+   "id": 9120,
+   "type": "GetVideoComponents",
+   "pos": [
+    0,
+    7640
+   ],
+   "size": [
+    430,
+    110
+   ],
+   "flags": {},
+   "order": 65,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 10027
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "images",
+     "type": "IMAGE",
+     "links": [
+      10028
+     ]
+    },
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "type": "AUDIO",
+     "links": []
+    },
+    {
+     "localized_name": "帧率",
+     "name": "fps",
+     "type": "FLOAT",
+     "links": null
+    },
+    {
+     "localized_name": "bit_depth",
+     "name": "bit_depth",
+     "type": "COMBO",
+     "links": null
+    },
+    {
+     "localized_name": "color_space",
+     "name": "color_space",
+     "type": "COMBO",
+     "links": null
+    }
+   ],
+   "title": "③ 视频1 拆：参考帧 + 伴音（自动）",
+   "properties": {
+    "Node name for S&R": "GetVideoComponents",
+    "cnr_id": "comfy-core"
+   }
+  },
+  {
+   "id": 9121,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    7060
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 73,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10076
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10032
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": [
+      10030
+     ]
+    }
+   ],
+   "title": "③ 视频1 帧闸门（关=空）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9122,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    7220
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 66,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10079
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10033
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "AUDIO",
+     "links": [
+      10031
+     ]
+    }
+   ],
+   "title": "③ 视频1 伴音闸门（关=空）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9124,
+   "type": "LoadVideo",
+   "pos": [
+    0,
+    8400
+   ],
+   "size": [
+    430,
+    319.7142857142857
+   ],
+   "flags": {},
+   "order": 32,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "文件",
+     "name": "file",
+     "type": "COMBO",
+     "widget": {
+      "name": "file"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择要上传的文件",
+     "name": "upload",
+     "type": "IMAGEUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "视频",
+     "name": "VIDEO",
+     "type": "VIDEO",
+     "links": [
+      10034,
+      10080
+     ]
+    }
+   ],
+   "title": "③ 视频2 · 运动/镜头参考（2–15 秒 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadVideo",
+    "cnr_id": "comfy-core"
+   },
+   "widgets_values": [
+    "ref_video_2.mp4",
+    "image"
+   ],
+   "widgets_values_named": {
+    "file": "ref_video_2.mp4",
+    "upload": "image"
+   }
+  },
+  {
+   "id": 9125,
+   "type": "Video Slice",
+   "pos": [
+    0,
+    8750
+   ],
+   "size": [
+    430,
+    238
+   ],
+   "flags": {},
+   "order": 54,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 10034
+    },
+    {
+     "localized_name": "起始时间",
+     "name": "start_time",
+     "type": "FLOAT",
+     "widget": {
+      "name": "start_time"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "时长",
+     "name": "duration",
+     "type": "FLOAT",
+     "widget": {
+      "name": "duration"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "严格时长",
+     "name": "strict_duration",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "strict_duration"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "视频",
+     "name": "VIDEO",
+     "type": "VIDEO",
+     "links": [
+      10035
+     ]
+    }
+   ],
+   "title": "③ 视频2 裁切（默认取前 5 秒）",
+   "properties": {
+    "Node name for S&R": "Video Slice",
+    "cnr_id": "comfy-core"
+   },
+   "widgets_values": [
+    0,
+    0.25,
+    false
+   ],
+   "widgets_values_named": {
+    "start_time": 0,
+    "duration": 0.25,
+    "strict_duration": false
+   }
+  },
+  {
+   "id": 9126,
+   "type": "GetVideoComponents",
+   "pos": [
+    0,
+    9020
+   ],
+   "size": [
+    430,
+    110
+   ],
+   "flags": {},
+   "order": 62,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 10035
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "images",
+     "type": "IMAGE",
+     "links": [
+      10036
+     ]
+    },
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "type": "AUDIO",
+     "links": []
+    },
+    {
+     "localized_name": "帧率",
+     "name": "fps",
+     "type": "FLOAT",
+     "links": null
+    },
+    {
+     "localized_name": "bit_depth",
+     "name": "bit_depth",
+     "type": "COMBO",
+     "links": null
+    },
+    {
+     "localized_name": "color_space",
+     "name": "color_space",
+     "type": "COMBO",
+     "links": null
+    }
+   ],
+   "title": "③ 视频2 拆：参考帧 + 伴音（自动）",
+   "properties": {
+    "Node name for S&R": "GetVideoComponents",
+    "cnr_id": "comfy-core"
+   }
+  },
+  {
+   "id": 9127,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    8440
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 70,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "IMAGE",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10077
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10040
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "IMAGE",
+     "links": [
+      10038
+     ]
+    }
+   ],
+   "title": "③ 视频2 帧闸门（关=空）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9128,
+   "type": "ComfySwitchNode",
+   "pos": [
+    560,
+    8600
+   ],
+   "size": [
+    380,
+    110
+   ],
+   "flags": {},
+   "order": 63,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "为假时",
+     "name": "on_false",
+     "shape": 7,
+     "type": "AUDIO",
+     "link": null
+    },
+    {
+     "localized_name": "为真时",
+     "name": "on_true",
+     "shape": 7,
+     "type": "*",
+     "link": 10081
+    },
+    {
+     "localized_name": "切换",
+     "name": "switch",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "switch"
+     },
+     "link": 10041
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "输出",
+     "name": "output",
+     "type": "AUDIO",
+     "links": [
+      10039
+     ]
+    }
+   ],
+   "title": "③ 视频2 伴音闸门（关=空）",
+   "properties": {
+    "Node name for S&R": "ComfySwitchNode",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "switch": false
+   }
+  },
+  {
+   "id": 9129,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    8460
+   ],
+   "size": [
+    494.8794921875,
+    90
+   ],
+   "flags": {},
+   "order": 33,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10040,
+      10041
+     ]
+    }
+   ],
+   "title": "① 【视频2 开关】true=读视频2（帧+伴音） / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 152,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    0,
+    920
+   ],
+   "size": [
+    537.269140625,
+    81.52464183696907
+   ],
+   "flags": {},
+   "order": 34,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      299
+     ]
+    }
+   ],
+   "title": "① 文本编码器 false=int4省内存 / true=int8无审查（已打补丁，带参考也能跑）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9134,
+   "type": "ImageScaleToTotalPixels",
+   "pos": [
+    2100,
+    700
+   ],
+   "size": [
+    369.214453125,
+    130
+   ],
+   "flags": {},
+   "order": 48,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "IMAGE",
+     "link": 10071
+    },
+    {
+     "localized_name": "缩放算法",
+     "name": "upscale_method",
+     "type": "COMBO",
+     "widget": {
+      "name": "upscale_method"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "像素数量",
+     "name": "megapixels",
+     "type": "FLOAT",
+     "widget": {
+      "name": "megapixels"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "分辨率步数",
+     "name": "resolution_steps",
+     "type": "INT",
+     "widget": {
+      "name": "resolution_steps"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10072
+     ]
+    }
+   ],
+   "title": "⑩ 缩放输出尺寸 (由 #963/#964 控制 → 1280x720)",
+   "properties": {
+    "Node name for S&R": "ImageScale"
+   },
+   "widgets_values": [
+    "lanczos",
+    0.9216,
+    8
+   ],
+   "widgets_values_named": {
+    "upscale_method": "lanczos",
+    "megapixels": 0.9216,
+    "resolution_steps": 8
+   }
+  },
+  {
+   "id": 9130,
+   "type": "RayInitializer",
+   "pos": [
+    -555.2827781099013,
+    23.57834659350542
+   ],
+   "size": [
+    463.085546875,
+    466
+   ],
+   "flags": {},
+   "order": 35,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "ray_cluster_address",
+     "name": "ray_cluster_address",
+     "type": "STRING",
+     "widget": {
+      "name": "ray_cluster_address"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "ray_cluster_namespace",
+     "name": "ray_cluster_namespace",
+     "type": "STRING",
+     "widget": {
+      "name": "ray_cluster_namespace"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "GPU",
+     "name": "GPU",
+     "type": "INT",
+     "widget": {
+      "name": "GPU"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "ulysses_degree",
+     "name": "ulysses_degree",
+     "type": "INT",
+     "widget": {
+      "name": "ulysses_degree"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "ring_degree",
+     "name": "ring_degree",
+     "type": "INT",
+     "widget": {
+      "name": "ring_degree"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "cfg_degree",
+     "name": "cfg_degree",
+     "type": "INT",
+     "widget": {
+      "name": "cfg_degree"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "dp_degree",
+     "name": "dp_degree",
+     "type": "INT",
+     "widget": {
+      "name": "dp_degree"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "sync_ulysses",
+     "name": "sync_ulysses",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "sync_ulysses"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "clear_vram_after_sampling",
+     "name": "clear_vram_after_sampling",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "clear_vram_after_sampling"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "FSDP",
+     "name": "FSDP",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "FSDP"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "FSDP_CPU_OFFLOAD",
+     "name": "FSDP_CPU_OFFLOAD",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "FSDP_CPU_OFFLOAD"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "XFuser_attention",
+     "name": "XFuser_attention",
+     "type": "COMBO",
+     "widget": {
+      "name": "XFuser_attention"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "skip_comm_test",
+     "name": "skip_comm_test",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "skip_comm_test"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "use_mmap",
+     "name": "use_mmap",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "use_mmap"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "ray_actors_init",
+     "name": "ray_actors_init",
+     "type": "RAY_ACTORS_INIT",
+     "links": [
+      10042
+     ]
+    }
+   ],
+   "title": "① 四卡总闸 (RayInitializer 4卡/USP=4/FSDP/TORCH_EFFICIENT)",
+   "properties": {
+    "Node name for S&R": "RayInitializerAdvanced"
+   },
+   "widgets_values": [
+    "local",
+    "default",
+    2,
+    2,
+    1,
+    1,
+    1,
+    false,
+    true,
+    true,
+    true,
+    "TORCH_EFFICIENT",
+    true,
+    true
+   ],
+   "widgets_values_named": {
+    "ray_cluster_address": "local",
+    "ray_cluster_namespace": "default",
+    "GPU": 2,
+    "ulysses_degree": 2,
+    "ring_degree": 1,
+    "cfg_degree": 1,
+    "dp_degree": 1,
+    "sync_ulysses": false,
+    "clear_vram_after_sampling": true,
+    "FSDP": true,
+    "FSDP_CPU_OFFLOAD": true,
+    "XFuser_attention": "TORCH_EFFICIENT",
+    "skip_comm_test": true,
+    "use_mmap": true
+   }
+  },
+  {
+   "id": 148,
+   "type": "SolAttnV100",
+   "pos": [
+    -508.0927307658934,
+    3969.0931528507704
+   ],
+   "size": [
+    420,
+    274
+   ],
+   "flags": {},
+   "order": 36,
+   "mode": 2,
+   "inputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "link": null
+    },
+    {
+     "localized_name": "fp16_safe",
+     "name": "fp16_safe",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "fp16_safe"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "tau",
+     "name": "tau",
+     "type": "FLOAT",
+     "widget": {
+      "name": "tau"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "start_percent",
+     "name": "start_percent",
+     "type": "FLOAT",
+     "widget": {
+      "name": "start_percent"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "end_percent",
+     "name": "end_percent",
+     "type": "FLOAT",
+     "widget": {
+      "name": "end_percent"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "min_tokens",
+     "name": "min_tokens",
+     "type": "INT",
+     "widget": {
+      "name": "min_tokens"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "dense_blocks",
+     "name": "dense_blocks",
+     "type": "STRING",
+     "widget": {
+      "name": "dense_blocks"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "h3_prefix_tokens",
+     "name": "h3_prefix_tokens",
+     "type": "INT",
+     "widget": {
+      "name": "h3_prefix_tokens"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "topk_blocks",
+     "name": "topk_blocks",
+     "type": "INT",
+     "widget": {
+      "name": "topk_blocks"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "debug_nan",
+     "name": "debug_nan",
+     "shape": 7,
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "debug_nan"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "profile",
+     "name": "profile",
+     "shape": 7,
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "profile"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "model",
+     "name": "model",
+     "type": "MODEL",
+     "links": null
+    }
+   ],
+   "title": "Sol-Attn(V100 原生核)｜GGUF 权重下必崩 → 默认绕过",
+   "properties": {
+    "Node name for S&R": "SolAttnV100"
+   },
+   "widgets_values": [
+    true,
+    0.75,
+    0.2,
+    0.9,
+    1024,
+    "0-1,-1",
+    1024,
+    32,
+    false,
+    false
+   ],
+   "widgets_values_named": {
+    "fp16_safe": true,
+    "tau": 0.75,
+    "start_percent": 0.2,
+    "end_percent": 0.9,
+    "min_tokens": 1024,
+    "dense_blocks": "0-1,-1",
+    "h3_prefix_tokens": 1024,
+    "topk_blocks": 32,
+    "debug_nan": false,
+    "profile": false
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 9132,
+   "type": "RayBasicScheduler",
+   "pos": [
+    497.049945983763,
+    3802.217715349541
+   ],
+   "size": [
+    300,
+    106
+   ],
+   "flags": {},
+   "order": 72,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "ray_actors",
+     "name": "ray_actors",
+     "type": "RAY_ACTORS",
+     "link": 10049
+    },
+    {
+     "localized_name": "scheduler",
+     "name": "scheduler",
+     "type": "COMBO",
+     "widget": {
+      "name": "scheduler"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "steps",
+     "name": "steps",
+     "type": "INT",
+     "widget": {
+      "name": "steps"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "denoise",
+     "name": "denoise",
+     "type": "FLOAT",
+     "widget": {
+      "name": "denoise"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "Sigmas",
+     "name": "SIGMAS",
+     "type": "SIGMAS",
+     "links": [
+      10050
+     ]
+    }
+   ],
+   "title": "⑥ 采样调度器 (simple/8步)",
+   "properties": {
+    "Node name for S&R": "RayBasicScheduler"
+   },
+   "widgets_values": [
+    "simple",
+    8,
+    1
+   ],
+   "widgets_values_named": {
+    "scheduler": "simple",
+    "steps": 8,
+    "denoise": 1
+   }
+  },
+  {
+   "id": 132,
+   "type": "PrimitiveFloat",
+   "pos": [
+    0,
+    550
+   ],
+   "size": [
+    460,
+    90
+   ],
+   "flags": {},
+   "order": 37,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "FLOAT",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "浮点",
+     "name": "FLOAT",
+     "type": "FLOAT",
+     "links": [
+      261
+     ]
+    }
+   ],
+   "title": "① 时长（秒）→ 自动换算帧数",
+   "properties": {
+    "Node name for S&R": "PrimitiveFloat",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    5
+   ],
+   "widgets_values_named": {
+    "value": 5
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 1003,
+   "type": "MarkdownNote",
+   "pos": [
+    1104.1369308475328,
+    -518.7261744389659
+   ],
+   "size": [
+    420,
+    420
+   ],
+   "flags": {},
+   "order": 38,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "📖 素材接到哪（节点对照表）",
+   "properties": {},
+   "widgets_values": [
+    "## 🎬 素材 → 主节点（136 MiniMaxH3ReferenceToVideo）\n\n主生成节点是 **Ref2VA 参考专用版**（底模 `minimax_h3_ref2va_pruned_fp8_scaled`），参考图/视频/音频全部接它的 AUTOGROW 口：\n\n| 素材 | 接到 136 的口 | 节点链 |\n|---|---|---|\n| 图1 | `ref_images.ref_image_0` | 图1 → 图1闸门 → 136 |\n| 图2/3/4 | `ref_image_1 / 2 / 3` | 同上，各自一个闸门 |\n| 音频1/2 | `ref_audios.ref_audio_0 / 1` | 音频装载器 → 闸门 → 136 |\n| 视频1/2 | `ref_videos.ref_video_0 / 1` | 装载器 → 裁切 → 拆帧+伴音 |\n| 视频1/2 伴音 | `ref_video_audios.ref_video_audio_0 / 1` | 同上（和帧同一个开关） |\n\n**为什么要闸门**：这个口的槽位是\"预接好\"的，开关关掉时闸门给主节点一个空值 `None`，\n主节点源码里就是 `if img is None: continue` → 该素材不存在；而闸门上游的装载器因为没被请求，**连执行都不会执行**。\n所以「关着 = 不读文件 = 不额外花时间」，想用哪个就翻哪个开关。\n\n**注意**：提示词里的 `<Picture 2>` / `<Audio 1>` / `<Video 1>` 按你实际开的素材编号，别对着关着的素材写。\n"
+   ],
+   "widgets_values_named": {
+    "text": "## 🎬 素材 → 主节点（136 MiniMaxH3ReferenceToVideo）\n\n主生成节点是 **Ref2VA 参考专用版**（底模 `minimax_h3_ref2va_pruned_fp8_scaled`），参考图/视频/音频全部接它的 AUTOGROW 口：\n\n| 素材 | 接到 136 的口 | 节点链 |\n|---|---|---|\n| 图1 | `ref_images.ref_image_0` | 图1 → 图1闸门 → 136 |\n| 图2/3/4 | `ref_image_1 / 2 / 3` | 同上，各自一个闸门 |\n| 音频1/2 | `ref_audios.ref_audio_0 / 1` | 音频装载器 → 闸门 → 136 |\n| 视频1/2 | `ref_videos.ref_video_0 / 1` | 装载器 → 裁切 → 拆帧+伴音 |\n| 视频1/2 伴音 | `ref_video_audios.ref_video_audio_0 / 1` | 同上（和帧同一个开关） |\n\n**为什么要闸门**：这个口的槽位是\"预接好\"的，开关关掉时闸门给主节点一个空值 `None`，\n主节点源码里就是 `if img is None: continue` → 该素材不存在；而闸门上游的装载器因为没被请求，**连执行都不会执行**。\n所以「关着 = 不读文件 = 不额外花时间」，想用哪个就翻哪个开关。\n\n**注意**：提示词里的 `<Picture 2>` / `<Audio 1>` / `<Video 1>` 按你实际开的素材编号，别对着关着的素材写。\n"
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 9131,
+   "type": "RayLoraLoader",
+   "pos": [
+    646.2080260566161,
+    863.7939299695732
+   ],
+   "size": [
+    317.5005859375,
+    100
+   ],
+   "flags": {},
+   "order": 39,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "prev_ray_lora",
+     "name": "prev_ray_lora",
+     "shape": 7,
+     "type": "RAY_LORA",
+     "link": null
+    },
+    {
+     "localized_name": "lora_name",
+     "name": "lora_name",
+     "type": "COMBO",
+     "widget": {
+      "name": "lora_name"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "strength_model",
+     "name": "strength_model",
+     "type": "FLOAT",
+     "widget": {
+      "name": "strength_model"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "ray_lora",
+     "name": "ray_lora",
+     "type": "RAY_LORA",
+     "links": [
+      10043
+     ]
+    }
+   ],
+   "title": "③b 同款LoRA strength=0 (给开关的\"关\"档)",
+   "properties": {
+    "Node name for S&R": "RayLoraLoader"
+   },
+   "widgets_values": [
+    "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+    0
+   ],
+   "widgets_values_named": {
+    "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+    "strength_model": 0
+   }
+  },
+  {
+   "id": 9118,
+   "type": "LoadVideo",
+   "pos": [
+    14.391213445275664,
+    6921.053407946296
+   ],
+   "size": [
+    430,
+    822.9166666666666
+   ],
+   "flags": {},
+   "order": 40,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "文件",
+     "name": "file",
+     "type": "COMBO",
+     "widget": {
+      "name": "file"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择要上传的文件",
+     "name": "upload",
+     "type": "IMAGEUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "视频",
+     "name": "VIDEO",
+     "type": "VIDEO",
+     "links": [
+      10026,
+      10078
+     ]
+    }
+   ],
+   "title": "③ 视频1 · 运动/镜头参考（2–15 秒 · 默认关）",
+   "properties": {
+    "Node name for S&R": "LoadVideo",
+    "cnr_id": "comfy-core"
+   },
+   "widgets_values": [
+    "ref_video_1.mp4",
+    "image"
+   ],
+   "widgets_values_named": {
+    "file": "ref_video_1.mp4",
+    "upload": "image"
+   }
+  },
+  {
+   "id": 115,
+   "type": "ResolutionSelector",
+   "pos": [
+    0,
+    340
+   ],
+   "size": [
+    460,
+    170
+   ],
+   "flags": {},
+   "order": 41,
+   "mode": 0,
+   "showAdvanced": false,
+   "inputs": [
+    {
+     "localized_name": "宽高比",
+     "name": "aspect_ratio",
+     "type": "COMBO",
+     "widget": {
+      "name": "aspect_ratio"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "百万像素",
+     "name": "megapixels",
+     "type": "FLOAT",
+     "widget": {
+      "name": "megapixels"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "倍数",
+     "name": "multiple",
+     "type": "INT",
+     "widget": {
+      "name": "multiple"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "预览",
+     "name": "preview",
+     "shape": 7,
+     "type": "RESOLUTION_PREVIEW",
+     "widget": {
+      "name": "preview"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "宽度",
+     "name": "width",
+     "type": "INT",
+     "links": [
+      276
+     ]
+    },
+    {
+     "localized_name": "高度",
+     "name": "height",
+     "type": "INT",
+     "links": [
+      277
+     ]
+    }
+   ],
+   "title": "① 分辨率（0.6MP ≈ 1056×608 · 实测干净）",
+   "properties": {
+    "Node name for S&R": "ResolutionSelector",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "9:16 (Portrait Widescreen)",
+    0.4,
+    32
+   ],
+   "widgets_values_named": {
+    "aspect_ratio": "9:16 (Portrait Widescreen)",
+    "megapixels": 0.4,
+    "multiple": 32
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9135,
+   "type": "ImageScaleToTotalPixels",
+   "pos": [
+    320,
+    7820
+   ],
+   "size": [
+    300,
+    110
+   ],
+   "flags": {},
+   "order": 69,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "IMAGE",
+     "link": 10028
+    },
+    {
+     "localized_name": "缩放算法",
+     "name": "upscale_method",
+     "type": "COMBO",
+     "widget": {
+      "name": "upscale_method"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "像素数量",
+     "name": "megapixels",
+     "type": "FLOAT",
+     "widget": {
+      "name": "megapixels"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "分辨率步数",
+     "name": "resolution_steps",
+     "type": "INT",
+     "widget": {
+      "name": "resolution_steps"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10076
+     ]
+    }
+   ],
+   "title": "③ 参考视频1 降到 320p（省 token）",
+   "properties": {
+    "Node name for S&R": "ImageScaleToTotalPixels"
+   },
+   "widgets_values": [
+    "lanczos",
+    0.12,
+    8
+   ],
+   "widgets_values_named": {
+    "upscale_method": "lanczos",
+    "megapixels": 0.12,
+    "resolution_steps": 8
+   }
+  },
+  {
+   "id": 9136,
+   "type": "ImageScaleToTotalPixels",
+   "pos": [
+    320,
+    9200
+   ],
+   "size": [
+    300,
+    110
+   ],
+   "flags": {},
+   "order": 67,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "IMAGE",
+     "link": 10036
+    },
+    {
+     "localized_name": "缩放算法",
+     "name": "upscale_method",
+     "type": "COMBO",
+     "widget": {
+      "name": "upscale_method"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "像素数量",
+     "name": "megapixels",
+     "type": "FLOAT",
+     "widget": {
+      "name": "megapixels"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "分辨率步数",
+     "name": "resolution_steps",
+     "type": "INT",
+     "widget": {
+      "name": "resolution_steps"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10077
+     ]
+    }
+   ],
+   "title": "③ 参考视频2 降到 320p（省 token）",
+   "properties": {
+    "Node name for S&R": "ImageScaleToTotalPixels"
+   },
+   "widgets_values": [
+    "lanczos",
+    0.12,
+    8
+   ],
+   "widgets_values_named": {
+    "upscale_method": "lanczos",
+    "megapixels": 0.12,
+    "resolution_steps": 8
+   }
+  },
+  {
+   "id": 9138,
+   "type": "GetVideoComponents",
+   "pos": [
+    1900,
+    8700
+   ],
+   "size": [
+    266.3130859375,
+    180
+   ],
+   "flags": {},
+   "order": 55,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 10080
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "images",
+     "type": "IMAGE",
+     "links": null
+    },
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "type": "AUDIO",
+     "slot_index": 1,
+     "links": [
+      10081
+     ]
+    },
+    {
+     "localized_name": "帧率",
+     "name": "fps",
+     "type": "FLOAT",
+     "links": null
+    },
+    {
+     "localized_name": "bit_depth",
+     "name": "bit_depth",
+     "type": "COMBO",
+     "links": null
+    },
+    {
+     "localized_name": "color_space",
+     "name": "color_space",
+     "type": "COMBO",
+     "links": null
+    }
+   ],
+   "title": "③ 视频2 原声（不切，供音频参考）",
+   "properties": {
+    "Node name for S&R": "GetVideoComponents"
+   }
+  },
+  {
+   "id": 9133,
+   "type": "MarkdownNote",
+   "pos": [
+    -388.06341149635125,
+    601.588321324401
+   ],
+   "size": [
+    300,
+    100
+   ],
+   "flags": {},
+   "order": 42,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "properties": {},
+   "widgets_values": [
+    "## 2卡 Ray 版（改动说明）\n\n在四卡 Ray 版基础上做的 3 处改动，目的 = 只用 2 张空卡（另 2 张可给别的常驻服务）：\n\n1. **RayInitializer #9130**：GPU `4→2`、ulysses `4→2`、**FSDP_CPU_OFFLOAD `False→True`**\n   - FSDP 分片后每卡 10G 权重 + 编码器分片，不开 CPU offload 会爆 16G\n   - 2卡模式系统内存需 ~30G（建议 ≥64G）\n2. **编码器 #128/#150 (CLIPLoaderDisTorch2MultiGPU)**：\n   - `expert_mode_allocations` `4×25% → 2×50%`\n   - `virtual_vram_gb` `4 → 8`（8G 编码器走 CPU 虚拟池，每卡显存只留 3G）\n3. **启动方式**：必须用 `CUDA_VISIBLE_DEVICES=0,1` 启动（`scripts/start_comfyui_2gpu.sh`），\n   让另 2 张卡对 ComfyUI 完全不可见 → 物理上抢不到。\n\n**没动的**：\n- 主模型仍是 int8_convrot（FSDP 只认它，fp8_scaled 装不了）\n- TESpeed/SolAttn/ScheduledSolAttentionPatch 仍断开（模型在 Ray worker 里，主进程改不到）\n- ESRGAN 放大开关仍是断开的（故意的，输出链 122→9134→130 直出，不走 967 放大）\n- 全部素材开关（4图/2音频/2视频）、提示词、双时钟采样器、latent 上采样"
+   ],
+   "widgets_values_named": {
+    "text": "## 2卡 Ray 版（改动说明）\n\n在四卡 Ray 版基础上做的 3 处改动，目的 = 只用 2 张空卡（另 2 张可给别的常驻服务）：\n\n1. **RayInitializer #9130**：GPU `4→2`、ulysses `4→2`、**FSDP_CPU_OFFLOAD `False→True`**\n   - FSDP 分片后每卡 10G 权重 + 编码器分片，不开 CPU offload 会爆 16G\n   - 2卡模式系统内存需 ~30G（建议 ≥64G）\n2. **编码器 #128/#150 (CLIPLoaderDisTorch2MultiGPU)**：\n   - `expert_mode_allocations` `4×25% → 2×50%`\n   - `virtual_vram_gb` `4 → 8`（8G 编码器走 CPU 虚拟池，每卡显存只留 3G）\n3. **启动方式**：必须用 `CUDA_VISIBLE_DEVICES=0,1` 启动（`scripts/start_comfyui_2gpu.sh`），\n   让另 2 张卡对 ComfyUI 完全不可见 → 物理上抢不到。\n\n**没动的**：\n- 主模型仍是 int8_convrot（FSDP 只认它，fp8_scaled 装不了）\n- TESpeed/SolAttn/ScheduledSolAttentionPatch 仍断开（模型在 Ray worker 里，主进程改不到）\n- ESRGAN 放大开关仍是断开的（故意的，输出链 122→9134→130 直出，不走 967 放大）\n- 全部素材开关（4图/2音频/2视频）、提示词、双时钟采样器、latent 上采样"
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 9123,
+   "type": "PrimitiveBoolean",
+   "pos": [
+    1080,
+    7080
+   ],
+   "size": [
+    489.1919921875,
+    90
+   ],
+   "flags": {},
+   "order": 43,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "BOOLEAN",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "布尔",
+     "name": "BOOLEAN",
+     "type": "BOOLEAN",
+     "links": [
+      10032,
+      10033
+     ]
+    }
+   ],
+   "title": "① 【视频1 开关】true=读视频1（帧+伴音） / false=不读（关=零耗时）",
+   "properties": {
+    "Node name for S&R": "PrimitiveBoolean",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    false
+   ],
+   "widgets_values_named": {
+    "value": false
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 9137,
+   "type": "GetVideoComponents",
+   "pos": [
+    1180.275880567725,
+    7240.63590320068
+   ],
+   "size": [
+    263.4693359375,
+    180
+   ],
+   "flags": {},
+   "order": 60,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "视频",
+     "name": "video",
+     "type": "VIDEO",
+     "link": 10078
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "images",
+     "type": "IMAGE",
+     "links": null
+    },
+    {
+     "localized_name": "音频",
+     "name": "audio",
+     "type": "AUDIO",
+     "slot_index": 1,
+     "links": [
+      10079
+     ]
+    },
+    {
+     "localized_name": "帧率",
+     "name": "fps",
+     "type": "FLOAT",
+     "links": null
+    },
+    {
+     "localized_name": "bit_depth",
+     "name": "bit_depth",
+     "type": "COMBO",
+     "links": null
+    },
+    {
+     "localized_name": "color_space",
+     "name": "color_space",
+     "type": "COMBO",
+     "links": null
+    }
+   ],
+   "title": "③ 视频1 原声（不切，供音频参考）",
+   "properties": {
+    "Node name for S&R": "GetVideoComponents"
+   }
+  },
+  {
+   "id": 9139,
+   "type": "MarkdownNote",
+   "pos": [
+    -3.7035286439350092,
+    -200.82128517564576
+   ],
+   "size": [
+    300,
+    100
+   ],
+   "flags": {},
+   "order": 44,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "properties": {},
+   "widgets_values": [
+    "【身份/人物】图1（<Picture 1>）：参考这位角色的脸、身材、衣服、装饰，全片保持身份一致。\n【运动/镜头/声音】视频1（<Video 1>）：参考这个视频里的动作和音乐。\n- **素材：** 以图1中的角色为角色参考\n- **画面推进：** 角色在干净明亮的房间里随节奏跳舞，镜头缓慢推进。\n- **风格：** 轻快活泼，动作自然流畅。"
+   ],
+   "widgets_values_named": {
+    "text": "【身份/人物】图1（<Picture 1>）：参考这位角色的脸、身材、衣服、装饰，全片保持身份一致。\n【运动/镜头/声音】视频1（<Video 1>）：参考这个视频里的动作和音乐。\n- **素材：** 以图1中的角色为角色参考\n- **画面推进：** 角色在干净明亮的房间里随节奏跳舞，镜头缓慢推进。\n- **风格：** 轻快活泼，动作自然流畅。"
+   },
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 1001,
+   "type": "LoadImage",
+   "pos": [
+    0,
+    4260
+   ],
+   "size": [
+    430,
+    370
+   ],
+   "flags": {},
+   "order": 45,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "图像",
+     "name": "image",
+     "type": "COMBO",
+     "widget": {
+      "name": "image"
+     },
+     "link": null
+    },
+    {
+     "localized_name": "选择文件上传",
+     "name": "upload",
+     "type": "IMAGEUPLOAD",
+     "widget": {
+      "name": "upload"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "图像",
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": [
+      10008
+     ]
+    },
+    {
+     "localized_name": "遮罩",
+     "name": "MASK",
+     "type": "MASK",
+     "slot_index": 1,
+     "links": null
+    }
+   ],
+   "title": "③ 图1 · 人物/身份参考（点文件名换图）",
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "widgets_values": [
+    "ref_image_1.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "ref_image_1.png",
+    "upload": "image"
+   }
+  },
+  {
+   "id": 138,
+   "type": "PrimitiveStringMultiline",
+   "pos": [
+    7.878339269534928,
+    6.638719891554343
+   ],
+   "size": [
+    460,
+    300
+   ],
+   "flags": {},
+   "order": 46,
+   "mode": 0,
+   "inputs": [
+    {
+     "localized_name": "值",
+     "name": "value",
+     "type": "STRING",
+     "widget": {
+      "name": "value"
+     },
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "localized_name": "字符串",
+     "name": "STRING",
+     "type": "STRING",
+     "links": [
+      307
+     ]
+    }
+   ],
+   "title": "① 提示词（改这里）",
+   "properties": {
+    "Node name for S&R": "PrimitiveStringMultiline",
+    "cnr_id": "comfy-core",
+    "ver": "0.33.0"
+   },
+   "widgets_values": [
+    "【身份/人物】图1（<Picture 1>）：参考这位角色的脸、身材、衣服、装饰，全片保持身份一致。\n- **画面推进：** 角色站在干净有阳光的公园里，向镜头走来并挥手，背景是绿树和花丛。\n- **声音：** 轻快背景音乐，无人声。\n- **风格：** 明快、欢快，动作自然流畅。"
+   ],
+   "widgets_values_named": {
+    "value": "【身份/人物】图1（<Picture 1>）：参考这位角色的脸、身材、衣服、装饰，全片保持身份一致。\n- **画面推进：** 角色站在干净有阳光的公园里，向镜头走来并挥手，背景是绿树和花丛。\n- **声音：** 轻快背景音乐，无人声。\n- **风格：** 明快、欢快，动作自然流畅。"
+   },
+   "color": "#322",
+   "bgcolor": "#533"
+  }
+ ],
+ "links": [
+  [
+   260,
+   130,
+   0,
+   92,
+   0,
+   "VIDEO"
+  ],
+  [
+   250,
+   120,
+   0,
+   121,
+   1,
+   "VAE"
+  ],
+  [
+   251,
+   119,
+   0,
+   122,
+   1,
+   "VAE"
+  ],
+  [
+   289,
+   142,
+   0,
+   124,
+   2,
+   "INT"
+  ],
+  [
+   253,
+   129,
+   0,
+   125,
+   0,
+   "NOISE"
+  ],
+  [
+   254,
+   126,
+   0,
+   125,
+   1,
+   "GUIDER"
+  ],
+  [
+   271,
+   136,
+   1,
+   125,
+   4,
+   "LATENT"
+  ],
+  [
+   261,
+   132,
+   0,
+   131,
+   0,
+   "FLOAT"
+  ],
+  [
+   300,
+   151,
+   0,
+   136,
+   0,
+   "CLIP"
+  ],
+  [
+   273,
+   119,
+   0,
+   136,
+   1,
+   "VAE"
+  ],
+  [
+   307,
+   138,
+   0,
+   136,
+   17,
+   "STRING"
+  ],
+  [
+   276,
+   115,
+   0,
+   136,
+   18,
+   "INT"
+  ],
+  [
+   277,
+   115,
+   1,
+   136,
+   19,
+   "INT"
+  ],
+  [
+   275,
+   131,
+   1,
+   136,
+   20,
+   "INT"
+  ],
+  [
+   287,
+   127,
+   0,
+   141,
+   0,
+   "MODEL"
+  ],
+  [
+   284,
+   143,
+   0,
+   142,
+   0,
+   "INT"
+  ],
+  [
+   283,
+   144,
+   0,
+   142,
+   1,
+   "INT"
+  ],
+  [
+   291,
+   146,
+   0,
+   142,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   285,
+   127,
+   0,
+   145,
+   0,
+   "MODEL"
+  ],
+  [
+   292,
+   141,
+   0,
+   147,
+   0,
+   "MODEL"
+  ],
+  [
+   308,
+   157,
+   0,
+   148,
+   0,
+   "MODEL"
+  ],
+  [
+   294,
+   148,
+   0,
+   149,
+   0,
+   "MODEL"
+  ],
+  [
+   299,
+   152,
+   0,
+   151,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   293,
+   147,
+   0,
+   157,
+   0,
+   "MODEL"
+  ],
+  [
+   309,
+   149,
+   0,
+   159,
+   0,
+   "MODEL"
+  ],
+  [
+   310,
+   159,
+   0,
+   126,
+   0,
+   "MODEL"
+  ],
+  [
+   311,
+   159,
+   1,
+   125,
+   2,
+   "SAMPLER"
+  ],
+  [
+   313,
+   136,
+   1,
+   159,
+   1,
+   "LATENT"
+  ],
+  [
+   9001,
+   159,
+   2,
+   901,
+   0,
+   "SIGMAS"
+  ],
+  [
+   9002,
+   901,
+   0,
+   125,
+   3,
+   "SIGMAS"
+  ],
+  [
+   9004,
+   902,
+   0,
+   903,
+   0,
+   "LATENT"
+  ],
+  [
+   9005,
+   903,
+   0,
+   904,
+   0,
+   "LATENT"
+  ],
+  [
+   9006,
+   902,
+   1,
+   904,
+   1,
+   "LATENT"
+  ],
+  [
+   9007,
+   901,
+   1,
+   905,
+   3,
+   "SIGMAS"
+  ],
+  [
+   9008,
+   129,
+   0,
+   905,
+   0,
+   "NOISE"
+  ],
+  [
+   9009,
+   126,
+   0,
+   905,
+   1,
+   "GUIDER"
+  ],
+  [
+   9010,
+   159,
+   1,
+   905,
+   2,
+   "SAMPLER"
+  ],
+  [
+   9011,
+   904,
+   0,
+   905,
+   4,
+   "LATENT"
+  ],
+  [
+   9012,
+   905,
+   0,
+   122,
+   0,
+   "LATENT"
+  ],
+  [
+   9601,
+   961,
+   0,
+   967,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   9602,
+   962,
+   0,
+   965,
+   0,
+   "UPSCALE_MODEL"
+  ],
+  [
+   9603,
+   963,
+   0,
+   966,
+   2,
+   "INT"
+  ],
+  [
+   9604,
+   964,
+   0,
+   966,
+   3,
+   "INT"
+  ],
+  [
+   9606,
+   965,
+   0,
+   966,
+   0,
+   "IMAGE"
+  ],
+  [
+   9608,
+   966,
+   0,
+   967,
+   1,
+   "IMAGE"
+  ],
+  [
+   10006,
+   120,
+   0,
+   136,
+   2,
+   "VAE"
+  ],
+  [
+   10008,
+   1001,
+   0,
+   9101,
+   1,
+   "IMAGE"
+  ],
+  [
+   10009,
+   9101,
+   0,
+   136,
+   3,
+   "IMAGE"
+  ],
+  [
+   10010,
+   9102,
+   0,
+   9101,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10011,
+   9103,
+   0,
+   9104,
+   1,
+   "IMAGE"
+  ],
+  [
+   10012,
+   9104,
+   0,
+   136,
+   4,
+   "IMAGE"
+  ],
+  [
+   10013,
+   9105,
+   0,
+   9104,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10014,
+   9106,
+   0,
+   9107,
+   1,
+   "IMAGE"
+  ],
+  [
+   10015,
+   9107,
+   0,
+   136,
+   5,
+   "IMAGE"
+  ],
+  [
+   10016,
+   9108,
+   0,
+   9107,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10017,
+   9109,
+   0,
+   9110,
+   1,
+   "IMAGE"
+  ],
+  [
+   10018,
+   9110,
+   0,
+   136,
+   6,
+   "IMAGE"
+  ],
+  [
+   10019,
+   9111,
+   0,
+   9110,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10020,
+   9112,
+   0,
+   9113,
+   1,
+   "AUDIO"
+  ],
+  [
+   10021,
+   9113,
+   0,
+   136,
+   14,
+   "AUDIO"
+  ],
+  [
+   10022,
+   9114,
+   0,
+   9113,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10023,
+   9115,
+   0,
+   9116,
+   1,
+   "AUDIO"
+  ],
+  [
+   10024,
+   9116,
+   0,
+   136,
+   15,
+   "AUDIO"
+  ],
+  [
+   10025,
+   9117,
+   0,
+   9116,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10026,
+   9118,
+   0,
+   9119,
+   0,
+   "VIDEO"
+  ],
+  [
+   10027,
+   9119,
+   0,
+   9120,
+   0,
+   "VIDEO"
+  ],
+  [
+   10028,
+   9120,
+   0,
+   9135,
+   0,
+   "IMAGE"
+  ],
+  [
+   10030,
+   9121,
+   0,
+   136,
+   8,
+   "IMAGE"
+  ],
+  [
+   10031,
+   9122,
+   0,
+   136,
+   11,
+   "AUDIO"
+  ],
+  [
+   10032,
+   9123,
+   0,
+   9121,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10033,
+   9123,
+   0,
+   9122,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10034,
+   9124,
+   0,
+   9125,
+   0,
+   "VIDEO"
+  ],
+  [
+   10035,
+   9125,
+   0,
+   9126,
+   0,
+   "VIDEO"
+  ],
+  [
+   10036,
+   9126,
+   0,
+   9136,
+   0,
+   "IMAGE"
+  ],
+  [
+   10038,
+   9127,
+   0,
+   136,
+   9,
+   "IMAGE"
+  ],
+  [
+   10039,
+   9128,
+   0,
+   136,
+   12,
+   "AUDIO"
+  ],
+  [
+   10040,
+   9129,
+   0,
+   9127,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10041,
+   9129,
+   0,
+   9128,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10042,
+   9130,
+   0,
+   127,
+   0,
+   "RAY_ACTORS_INIT"
+  ],
+  [
+   10043,
+   9131,
+   0,
+   141,
+   0,
+   "RAY_LORA"
+  ],
+  [
+   10044,
+   145,
+   0,
+   141,
+   1,
+   "RAY_LORA"
+  ],
+  [
+   10045,
+   146,
+   0,
+   141,
+   2,
+   "BOOLEAN"
+  ],
+  [
+   10046,
+   141,
+   0,
+   127,
+   1,
+   "RAY_LORA"
+  ],
+  [
+   10047,
+   127,
+   0,
+   149,
+   0,
+   "RAY_ACTORS"
+  ],
+  [
+   10048,
+   149,
+   0,
+   124,
+   0,
+   "RAY_ACTORS"
+  ],
+  [
+   10049,
+   149,
+   0,
+   9132,
+   0,
+   "RAY_ACTORS"
+  ],
+  [
+   10050,
+   9132,
+   0,
+   901,
+   0,
+   "SIGMAS"
+  ],
+  [
+   10051,
+   149,
+   0,
+   126,
+   0,
+   "RAY_ACTORS"
+  ],
+  [
+   10052,
+   136,
+   0,
+   126,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   10053,
+   126,
+   0,
+   125,
+   0,
+   "RAY_GUIDER"
+  ],
+  [
+   10054,
+   123,
+   0,
+   125,
+   1,
+   "SAMPLER"
+  ],
+  [
+   10055,
+   136,
+   1,
+   125,
+   3,
+   "LATENT"
+  ],
+  [
+   10056,
+   126,
+   0,
+   905,
+   0,
+   "RAY_GUIDER"
+  ],
+  [
+   10057,
+   123,
+   0,
+   905,
+   1,
+   "SAMPLER"
+  ],
+  [
+   10058,
+   904,
+   0,
+   905,
+   3,
+   "LATENT"
+  ],
+  [
+   10059,
+   901,
+   0,
+   125,
+   2,
+   "SIGMAS"
+  ],
+  [
+   10060,
+   901,
+   1,
+   905,
+   2,
+   "SIGMAS"
+  ],
+  [
+   10061,
+   128,
+   0,
+   151,
+   0,
+   "CLIP"
+  ],
+  [
+   10062,
+   150,
+   0,
+   151,
+   1,
+   "CLIP"
+  ],
+  [
+   10063,
+   125,
+   0,
+   902,
+   0,
+   "LATENT"
+  ],
+  [
+   10067,
+   9134,
+   0,
+   967,
+   0,
+   "IMAGE"
+  ],
+  [
+   10068,
+   963,
+   0,
+   9134,
+   2,
+   "INT"
+  ],
+  [
+   10069,
+   964,
+   0,
+   9134,
+   3,
+   "INT"
+  ],
+  [
+   10070,
+   122,
+   0,
+   965,
+   1,
+   "IMAGE"
+  ],
+  [
+   10071,
+   122,
+   0,
+   9134,
+   0,
+   "IMAGE"
+  ],
+  [
+   10072,
+   9134,
+   0,
+   130,
+   0,
+   "IMAGE"
+  ],
+  [
+   10073,
+   125,
+   0,
+   122,
+   0,
+   "LATENT"
+  ],
+  [
+   10074,
+   125,
+   0,
+   121,
+   0,
+   "LATENT"
+  ],
+  [
+   10075,
+   121,
+   0,
+   130,
+   1,
+   "AUDIO"
+  ],
+  [
+   10076,
+   9135,
+   0,
+   9121,
+   1,
+   "IMAGE"
+  ],
+  [
+   10077,
+   9136,
+   0,
+   9127,
+   1,
+   "IMAGE"
+  ],
+  [
+   10078,
+   9118,
+   0,
+   9137,
+   0,
+   "VIDEO"
+  ],
+  [
+   10079,
+   9137,
+   1,
+   9122,
+   1,
+   "AUDIO"
+  ],
+  [
+   10080,
+   9124,
+   0,
+   9138,
+   0,
+   "VIDEO"
+  ],
+  [
+   10081,
+   9138,
+   1,
+   9128,
+   1,
+   "AUDIO"
+  ]
+ ],
+ "groups": [
+  {
+   "id": 1,
+   "title": "① 控制面板·只改这里（提示词/分辨率/时长/加速/放大/文本编码器）",
+   "bounding": [
+    -40,
+    -60,
+    540,
+    1700
+   ],
+   "color": "#3f789e",
+   "flags": {}
+  },
+  {
+   "id": 2,
+   "title": "② 模型加载（大件，别动）",
+   "bounding": [
+    550,
+    -60,
+    480,
+    880
+   ],
+   "color": "#88cc88",
+   "flags": {}
+  },
+  {
+   "id": 3,
+   "title": "③ 条件 / 文本编码器切换 / SOL 收严",
+   "bounding": [
+    1090,
+    -60,
+    480,
+    1250
+   ],
+   "color": "#af88cc",
+   "flags": {}
+  },
+  {
+   "id": 4,
+   "title": "④ 采样：双时钟 8 步 euler/beta",
+   "bounding": [
+    1630,
+    -60,
+    420,
+    830
+   ],
+   "color": "#cc8888",
+   "flags": {}
+  },
+  {
+   "id": 5,
+   "title": "⑤ 放大·ESRGAN 图像空间超分（可开关）",
+   "bounding": [
+    2110,
+    -60,
+    500,
+    590
+   ],
+   "color": "#ccaa44",
+   "flags": {}
+  },
+  {
+   "id": 7,
+   "title": "⑦ 解码 + 出片",
+   "bounding": [
+    3270,
+    -60,
+    580,
+    1440
+   ],
+   "color": "#789e3f",
+   "flags": {}
+  },
+  {
+   "id": 8,
+   "title": "⑧ 📖 使用说明（先读这块）",
+   "bounding": [
+    3870,
+    -60,
+    760,
+    2260
+   ],
+   "color": "#666",
+   "flags": {}
+  },
+  {
+   "id": 9,
+   "title": "⑨ ⚠️ 备用/已旁路（灰色节点不参与计算，别删）",
+   "bounding": [
+    -40,
+    3120,
+    950,
+    900
+   ],
+   "color": "#777",
+   "flags": {}
+  },
+  {
+   "id": 10,
+   "title": "⑥ 素材区（4图 / 2音频 / 2视频 · 每个素材一个独立开关）",
+   "bounding": [
+    -40,
+    4200,
+    1640,
+    5140
+   ],
+   "color": "#a1309b",
+   "flags": {}
+  }
+ ],
+ "config": {},
+ "extra": {
+  "ds": {
+   "scale": 1.989021032734983,
+   "offset": [
+    258.3978165309438,
+    21.47651286107437
+   ]
+  },
+  "frontendVersion": "1.49.6",
+  "VHS_latentpreview": false,
+  "VHS_latentpreviewrate": 0,
+  "VHS_MetadataImage": true,
+  "VHS_KeepIntermediate": true
+ },
+ "version": 0.4
+}

@@ -1,0 +1,31 @@
+# Development-only files excluded from the Comfy Registry archive.
+[Rr][Oo][Aa][Dd][Mm][Aa][Pp].[Mm][Dd]
+[Ss][Kk][Ii][Ll][Ll].[Mm][Dd]
+.github/
+artifacts/
+docs/
+tests/
+tools/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+
+# Unregistered VRetouchEr research is retained in the GitHub source tree for
+# reproducibility, but it has no public node or bundled workflow.  Do not ship
+# its pinned upstream source in the Registry runtime archive.  Besides reducing
+# an unused ~research-only surface, this prevents the upstream SpyNet fallback
+# downloader from appearing in an installable package; released nodes never
+# import these modules.
+h3_t8/skin_finish_vretoucher_adapter.py
+h3_t8/skin_finish_vretoucher_runtime.py
+h3_t8/skin_finish_vretoucher_pipeline.py
+h3_t8/vendor/vretoucher_upstream/
+
+# Human-rejected research templates remain local evidence, never candidate delivery.
+examples/workflows/04-long-video/2026-09-12_H3_Dance_Native_Stock20_EXP.json
+examples/workflows/04-long-video/2026-09-12_H3_Dance_Dual_4plus4_EXP.json
+examples/workflows/04-long-video/2026-09-13_H3_Depth_Ref2VA_Native8_EXP.json
+examples/workflows/07-motion-detail/2026-09-13_H3_Depth_Fun_Single5s_EXP.json

@@ -1,0 +1,192 @@
+{
+  "release_1_81_0": {
+    "status": "Release v1.81.0: append-only H3 memory nodes and reference-voice boundary hardening",
+    "scope": "Two independent H3 MODEL memory nodes, composite-only automatic reference-voice trimming, VAD-backed strict ASR timestamps and a current-layout Sol verification probe",
+    "registered_nodes": 336,
+    "workflow_json_count": 254,
+    "qualification": "Fixed serial 3-second H3 T2VA baseline and h4/c2 candidate passed strict H264 video/audio decode; observed peak changed 14922.98 to 14616.25 MiB and wall time 79.94 to 82.27 seconds. Existing reference-voice audio was boundary-audited without a GPU rerun.",
+    "limitations": "No universal memory, speed, quality, bit-exactness or 16GiB safety claim. Existing explicit trim settings are preserved. External standalone Sol nodes and dual-model long-loop integration are outside this release.",
+    "documentation": ["docs/RELEASE_1.81.0.md", "docs/H3_MEMORY_NODES_EXP.md", "docs/SPEECH_VALIDATION_REPORT.md"]
+  },
+  "h3_memory_nodes_development_20260915": {
+    "status": "v1.81.0 release implementation; fixed short validation complete",
+    "scope": "Two independent append-only T8 MODEL nodes for native H3 attention early release/head grouping and conditional packed-token FFN chunking",
+    "registered_nodes": 336,
+    "nodes": ["MiniMaxH3LowVRAMAttentionT8Advanced", "MiniMaxH3ChunkFeedForwardT8Advanced"],
+    "qualification": "KJ global Sage auto plus standard H3 T2VA 1024x512 73 frames fixed seed: both baseline and h4/c2 produced strict-decodable H264 MP4 with audio; observed peak changed 14922.98 to 14616.25 MiB and wall time 79.94 to 82.27 seconds",
+    "boundaries": "KJNodes is not required. Ordinary weight LoRA and either T8-node order are direct scope. Unknown object-patched attention/MLP and DiT replacements fail closed. Outputs are different generations, not pixel-equivalent. Dedicated dual-model long-loop identity integration remains out of scope."
+  },
+  "topaz_parameter_guide_ui_20260914": {
+    "status": "Local candidate deployed to the currently loaded v1.79.6 test copy; ComfyUI restart is required before live visual verification",
+    "scope": "Restore the regular Topaz in-node reference, cover every input and manual parameter with ranges and examples, and render it as a 620px read-only scrollable panel with a 760px minimum node width",
+    "qualification": "Targeted Python schema/parameter tests and executable Node.js frontend behavior tests pass; no Topaz inference path or existing parameter default changed",
+    "limitations": "The running ComfyUI process has not reloaded the new frontend extension yet. Final canvas appearance must be checked after restart; the help panel is frontend-only and non-serialized."
+  },
+  "topaz_automatic_delivery_hotfix_20260914": {
+    "status": "Validated hotfix published on GitHub main and deployed to the currently loaded v1.79.6 test copy; ComfyUI restart is required to activate the deployed Python code",
+    "scope": "Legacy/default delivery_h264 automatically accepts qualified 8/10/16-bit progressive SDR and always publishes H.264 yuv420p MP4; incompatible MP4 audio is automatically encoded to AAC",
+    "qualification": "123 targeted CPU tests passed. Two real one-second Iris runs passed: Main10+AAC preserved packet audio, and Main10+PCM automatically produced AAC MP4 with frame/FPS/A-V/PCM-duration/strict-decode audits passing.",
+    "limitations": "HDR, VFR, interlaced, rotated, non-square-pixel and discontinuous sources remain fail-closed because automatic acceptance would risk incorrect color or timing. Main10 and lossless profiles remain advanced explicit routes. Topaz activation and prepared local model weights remain required."
+  },
+  "selflift_four_updates_development_20260914": {
+    "status": "Local v1.80.0 candidate; all bound human review accepted, nine accepted-only workflows promoted, and exact archive CPU verification passed; publication remains pending",
+    "base": "v1.79.6 e12d8af8ac85540da9895cb629836a4947e221ca",
+    "added_nodes": ["MiniMaxH3TSTModelEXPT8", "MiniMaxH3ProgressiveSetupEXPT8", "MiniMaxH3ProgressiveLongVideoEXPT8"],
+    "qualification": "Current progressive CPU gate:957passed/3conditional skips/0failures across46files; current cache/audio reliability and actual Chrome UI/API checks have separate scoped evidence. All nine new media are mechanically audited, including native TaoMate3/4 and repaired KJ+FFN+TST+EAV+Relay. All bound human review is accepted; the final EAV calibration is the exact tau8/15%-90% 3-second pair with normal picture/detail/ambience ratings.",
+    "limitations": "No universal quality or end-to-end acceleration claim. The accepted EAV result is sample-specific; raising tau may increase dynamics and also identity drift, deformation, flicker or indirect audio change. DynamicVRAM/Qwen identities, first-window TST/Relay order and nullable export metadata repaired. Two-segment8s delivery reused completed sampling. Public Long internalwindow124..362, shorter output trims. Nine accepted-only workflows are local and not yet published. Released Topaz fixes retained; no deployment/publication."
+  },
+  "release_1_80_0": {
+    "status": "Local release candidate passed exact archive CPU/schema/workflow verification; publication pending",
+    "scope": "Three appended public nodes and nine accepted-only frontend EXP workflows; existing 331-node registry prefix and all prior workflows remain unchanged",
+    "registered_nodes": 334,
+    "workflow_json_count": 254,
+    "qualification": "Progressive CPU gate: 957 passed, 3 conditional skips, 0 failures across 46 files. Nine bound media passed mechanical and actual Chrome checks. Human review accepted the exact two-segment8s seam/AV/lipsync sample, TaoMate3/4, guide, TST, Sol, combined event transition and final tau8/15%-90% real-person EAV calibration.",
+    "limitations": "Bound short-sample qualification only; no universal quality, speed, VRAM or duration claim. Combined workflow applies the separately accepted tau8 EAV controls without another GPU run. Higher EAV tau can increase motion and identity drift/deformation/flicker/indirect audio change. Third-party models/plugins are not bundled; Starlight remains paused.",
+    "documentation": ["docs/RELEASE_1.80.0.md", "docs/PROGRESSIVE_PUBLIC_WORKFLOW_EXP.md", "docs/PROGRESSIVE_TRAINED_VALIDATION_EXP.md", "examples/workflows/33-selflift-taomate/README.md"]
+  },
+  "release_1_79_6": {
+    "status": "Topaz dropdown-model closure, explicit Main10 SDR, GPU selection and two-stage workflow",
+    "scope": "Mechanically qualify every regular and interpolation dropdown model, preserve explicit 10-bit SDR through HEVC Main10, repair lossless-master auditing, expose GPU index and ship upscale-then-interpolate",
+    "registered_nodes": 331,
+    "workflow_json_count": 245,
+    "qualification": "All 14 regular and all 5 interpolation dropdown models completed official production-worker runs with download=0; media audit and strict decode passed. Main10 and lossless-master routes have dedicated short production-worker evidence.",
+    "limitations": "Model weights are local commercial assets and are not redistributed. Visual preference is not asserted for every model. HDR, VFR, interlaced and rotated inputs remain explicitly refused. Starlight remains paused."
+  },
+  "release_1_79_5": {
+    "status": "Topaz model-aware parameters, container preflight, bit-depth guard and live progress",
+    "scope": "Filter unsupported manual controls, bind weights from official backend templates, choose MP4/MKV before inference, refuse silent 10-bit conversion, and report inference/audit progress",
+    "registered_nodes": 331,
+    "workflow_json_count": 244,
+    "qualification": "Official Apollo apo-8 completed a real 24-to-48fps one-second AAC production-worker run with download=0; duration, packet audio, decoded PCM and strict decode passed. Visual quality remains human-pending.",
+    "limitations": "Apollo is mechanically qualified on one short local sample, not universally or visually qualified; other interpolation models remain untested and Starlight remains paused."
+  },
+  "release_1_79_4": {
+    "status": "Topaz compact delivery, controls and interpolation EXP",
+    "scope": "Default direct H264 NVENC save, optional lossless audit, model guidance, auto/manual parameters and separate tvai_fi node",
+    "registered_nodes": 331,
+    "workflow_json_count": 244,
+    "limitations": "Regular Iris2x compact encoder path is real-tested; interpolation weights are not installed locally, so FI visual inference remains unqualified."
+  },
+  "release_1_79_3": {
+    "status": "Official Topaz preflight and model-selection hotfix",
+    "scope": "Remove fixed free-VRAM gate, make raw RGB48 disk estimate advisory, support alternate output directory, and expose common model IDs as a dropdown",
+    "registered_nodes": 330,
+    "workflow_json_count": 243,
+    "limitations": "Regular Topaz EXP only; no interpolation, 4x or Starlight qualification. Models remain user-supplied through the official installation; runtime resource and 1GiB disk stop guards remain."
+  },
+  "github_main_update_20260913": {
+    "status": "Scoped GitHub main and formal-directory deployment; specific LTX, recovered Tao dialogue and latest Dance accepted-picture8s human-accepted; depth remains negative evidence; Registry not triggered",
+    "scope": "HJL coexistence, audio reference boundaries, RGB Dance, prepared Tao/LTX, resource lifetime, AdaLN pairing and optional depth",
+    "registered_nodes": 330,
+    "workflow_json_count": 243,
+    "packaged_workflow_json_count": 243,
+    "qualification": "Original RGB Dance/Tao/LTX pilots reused; real Core checkpoint traversal and native UI export passed; new packaged wrappers not rerun on GPU",
+    "limitations": "Dance LOW-only8s contrast58a8a8fb616a741be4c76f75e5857dff098e0b649959470ac0ba9b8ff7877039 passed full human review. Older Dance/depth failed workflows remain local evidence, excluded from candidate archive. Original Tao failure is retained; recovered media does not qualify fresh packaged-worker end-to-end GPU reliability. No universal quality, duration or leak-free claim.",
+    "documentation": [
+      "docs/DANCE_ACCEPTED_PICTURE_20260913.md",
+      "docs/DUAL_MODEL_SEAM_FIX_20260913.md",
+      "docs/PREPARED_GENERATION_INTEGRATION_EXP.md",
+      "docs/PREPARED_SOURCES_AND_ENVIRONMENT.md",
+      "docs/DEPTH_REFERENCE_EXP.md",
+      "docs/LOCAL_RELIABILITY_SCOPE_20260913.md"
+    ]
+  },
+  "name": "minimax-h3-audio-T8",
+  "version": "1.81.0",
+  "release_1_79_0": {
+    "scope": "Dual-MODEL4+learned-upscale+4, KJ/Sol integration, official regular Topaz upscaling, R1 reliability, VDN upstream override coexistence",
+    "qualification": "Reviewed two-segment8s prefix-lock sample accepted; old workflow defaults preserved.177 targetedCPU and62 VDN/Core checks passed; no GPU rerun for override gate removal.",
+    "limitations": "Starlight paused; Topaz GUI parity unperformed; VDN retains upstream Sol override but its own attention does not dispatch it. No combined Sol+VDN speed claim.",
+    "registered_nodes": 327,
+    "workflow_json_count": 235
+  },
+  "development_candidate_20260911": {
+    "latest_checkpoint": "The failed post-sampling bridge and its coarse-x0 claim remain rejected. The isolated accepted-picture-to-LOW-context change reused the direct accepted predecessor's decoded39-frame picture tail while preserving context22, HIGH native mask,4+4, learned3D upscale, seeds and audio. The exact8s Dance sample passed full human review; see docs/DANCE_ACCEPTED_PICTURE_20260913.md.",
+    "status": "Superseded by the scoped2026-09-13 GitHub main deployment; historical failed comparisons remain negative evidence",
+    "registered_nodes": 327,
+    "workflow_json_count": 235,
+    "documentation": [
+      "docs/DUAL_MODEL_LONG_VIDEO_EXP.md",
+      "docs/TOPAZ_EXP.md",
+      "docs/R1_RELIABILITY_20260911.md"
+    ],
+    "qualification": "The exact accepted-picture LOW-context8s Dance sample passed full human review. Raw/color-corrected24s, old Sol1.3, latent-bridge and depth failures remain negative evidence. This is sample-specific and does not establish universal seam quality.",
+    "topaz": "Official Iris portrait2x/1.5x,game2x,24s2x mechanical checks and scored human acceptance recorded. Official GUI same-parameter export comparison not performed. Starlight paused, not qualified."
+  },
+  "acceleration_local_candidate": {
+    "date": "2026-09-10",
+    "status": "v1.77.0 EXP release: reviewed short-clip visuals accepted; dialogue/audio/lipsync accepted in scored portrait cases. Game audio concerns remain; pair-4 selected side conflicts with its note. Not universal quality or long-video qualification.",
+    "registered_nodes": 320,
+    "workflow_json_count": 226,
+    "progressive_workflows": "examples/workflows/28-progressive-sampling",
+    "fi_workflows": "examples/workflows/29-dlss-fi",
+    "fi_runtime": "User-supplied dlssg-worker.exe and nvngx_dlssg.dll under models/DLSS-FI/310.7.0 or an explicit existing directory; no runtime download or redistribution",
+    "fi_dependencies": "Windows, single compatible NVIDIA RTX, PyAV, NumPy, OpenCV DIS, psutil, pynvml; imported only when FI is requested",
+    "limits": "Progressive qualification is currently 1024x512 short clips, not a passed32-second route. FI supports fixed2x SDR CFR file VIDEO, not HDR/VFR or automatic cut detection. TRT remains deferred."
+  },
+  "outpaint_release": {
+    "date": "2026-09-09",
+    "status": "User authorized release with known visual limitations; not an all-material quality pass",
+    "default_source_mode": "joint_decode",
+    "optional_source_mode": "preserve_source",
+    "workflows": "examples/workflows/27-video-outpaint",
+    "limits": "Expanded regions may show strips, repeated textures and seams. Joint decoding reconstructs the original region. The isolated 6.6-second strict-mask experiment is not integrated. No further GPU tests are required for this scoped release."
+  },
+  "core_vdn_local_delivery": {
+    "date": "2026-09-08",
+    "status": "Core/VDN v1.75.0 previously published at3769d70aa70431793cfbb29cd381ac4b19eee3fa",
+    "isolated_candidate": "artifacts/core-vdn-isolated-delivery-20260908/runtime/custom_nodes/minimax-h3-audio-T8",
+    "scope": "Published ad43472 plus Core/VDN only;301 candidate nodes; paused main-workspace outpaint excluded",
+    "evidence": "Candidate full CPU2435; trained DynamicVRAM VDN8+4; four UI/API and installed source/user workflows; official package/extracted301-node CPU import",
+    "limits": "No physical4070TiSUPER/Blackwell or exhaustive plugin-combination claim; historical15-outpaint-failure checkpoint was superseded by the3174-pass CPU regression"
+  },
+  "category": "T8/MiniMax H3/Audio",
+  "license": "GPL-3.0-or-later",
+  "validated_on": "2026-09-06",
+  "validated_comfyui_commit": "cf10c5c398ad4297b664e7aa85090daaee529f29",
+  "validated_onekey_runtime_commit": "0f1fa67ad8a68b62c65ebc97a7bf485df2459c3a",
+  "validated_previous_comfyui_commit": "e7051b03758a1247e3adb84a5b784ffacb9a23bd",
+  "validated_earlier_comfyui_commit": "86aedfd943d36d485e5ed3cb9d962f21f73d1741",
+  "validated_legacy_comfyui_commit": "563b98eefbe643a4cd510ee7f0b43e79880d5a3f",
+  "python": "3.10+",
+  "external_runtime_dependencies": [
+    "FFmpeg available on PATH for crash-isolated H.264/AAC encoding, exact-duration atomic H3-World MP4 output, Long Video candidate save/final composition, and strict pre-publication decode for opt-in Skin Finish file outputs"
+  ],
+  "optional_runtime_dependencies": [
+    "ComfyUI-KJNodes with authenticated H3 low-memory attention and chunked FFN implementations at 3f20054 or da90cca (LF/CRLF supported); Stock20 outpaint generation uses both patches. Preview, archive review and confirmation do not load the diffusion model. No KJ source is redistributed; unsupported modified implementations are not silently substituted.",
+    "A user-supplied video2dlssnr v1.3 full Windows runtime under ComfyUI/models/DLSS-NR/1.3 (or v1.2 for 1x NR-only) plus NVIDIA RTX driver 616.56 or newer for the opt-in DLSS-NR post-processing Plan B; the audit checks the allowlisted official archive and installed EXE/DLL identity, requires the executable and all DLLs in one load directory plus a real route-F probe on a uniquely identified GPU, and never downloads or redistributes the unlicensed upstream executable, forwarder, or proprietary NVIDIA DLLs",
+    "OpenVDN/vdn-minimax-h3 revision 18be6bcc4ee72585eee322ba28b5ccac2cf85ef0 branch and adapters plus a full non-pruned 2688-column AdaLN MiniMax H3 base for the formal T2VA/I2VA/L2VA/FL2VA/reference workflows; an install-ready gated model bundle is maintained at https://huggingface.co/t8star/Vdn-Minimax-H3-Comfy, and the node never downloads weights at runtime; MiniMax H3 license territory restrictions apply",
+    "DANNY621/H3-World revision 8883340a740842b5c40b45383e5b75df34931806 step-10000.safetensors installed as models/loras/minimax/H3-World/step-10000.safetensors for the isolated 832x480x124 first-frame I2VA route; the install-ready, byte-identical mirror is https://huggingface.co/t8star/Minimax-H3-World-Comfy at revision a7ce9cc7c0a2810cbfaf04c15c6d915b157bd899; the released 104-pair LoRA is directly ComfyUI-loadable and no converted checkpoint is required",
+    "Triton from the active Torch/CUDA-compatible ComfyUI runtime for the opt-in SLA Precision V2 direct sparse kernel; pinned MIT source is vendored and no package is installed or downloaded at runtime",
+    "spas-sage-attn with a Torch/CUDA/GPU-compatible wheel for the opt-in FlashVSR v1.1 post-processing nodes; the package is imported only when FlashVSR executes and no compiled wheel is bundled",
+    "spas-sage-attn 0.1.0 with a Torch/CUDA-compatible wheel for the opt-in LightX2V SLA Advanced EXP node; stable, dense-control and disabled workflows do not import its CUDA kernel",
+    "ComfyUI-KJNodes with the complete MiniMax H3 memory-efficient Sage 50-block forward patch for the opt-in SLA + KJ Sage Composer; no KJ source is bundled",
+    "transformers 4.x, accelerate 1.x, peft 0.18-0.20, safetensors 0.x and Pillow 10.x plus local Qwen3-VL-8B/LightX2V adapter weights for the opt-in Prompt Rewriter 8B nodes",
+    "scraed/LanPaint@32cf848e93971da380d868936e007f5611218bee as a separately installed GPL-3.0 external sampler for the opt-in LanPaint AV repair workflow",
+    "xiaolibai-sys/ComfyUI-MiniMaxH3@099aa38c122cea030ce45a51eb1d83208b16a363 as a separately installed external streaming runtime for the opt-in BlockSwap bridge; its source license is currently undeclared and no source is redistributed here",
+    "nicolab28/ComfyUI-ClipProj 0.1.13 at c01ba8fb8f41b4f2094dbd0b185cdc238fb6134c plus a user-supplied matching 4B/8B projection matrix for the opt-in ClipProj compatibility and bridge workflows; MIT source and model weights are not redistributed here",
+    "Saganaki22/ComfyUI-sol-attn 0.6.2 at 930a4d6e432ff8b8ed5e30ff2f72519b92d69bdf for the opt-in Sol-Attn compatibility and conservative T2VA workflows; its CUDA/BF16 kernels remain separately installed under Apache-2.0 and are never imported by stable routes",
+    "YanzuoLu/ComfyUI-MiniMax-H3-RAVEN-Streaming 0.1.0 at bcfa38138ddf1a5041af9880760815874138d4e1 for the opt-in guarded RAVEN T2VA workflow; its MIT causal runtime, streaming preview and mandatory external model/LoRA weights are installed separately and are not redistributed here",
+    "sageattention for the opt-in Enhance-A-Video + Strict Sage Advanced EXP composer; stable and disabled routes do not require it",
+    "faster-whisper with a local multilingual CTranslate2 model for ASR verification/alignment",
+    "transformers with a local WavLMForXVector model for experimental speaker-similarity reporting",
+    "OpenCV with FaceDetectorYN plus the pinned local YuNet 2023mar ONNX file for the default real-person Face Refine detector; no runtime download",
+    "OpenCV with FaceRecognizerSF plus the pinned Apache-2.0 OpenCV Zoo SFace 2021dec ONNX file for experimental multi-person identity suggestions; no runtime download",
+    "FaceXLib 0.3.0 code plus the exact local FaceXLib v0.2.2 ParseNet checkpoint (85,331,193 bytes, SHA-256 3d558d8d0e42c20224f13cf5a29c79eba2d59913419f945545d8cf7b72920de2) for the opt-in single-/multi-person Skin Finish Semantic Mask and bounded Quality Stream Advanced EXP nodes; no runtime download and no checkpoint redistribution",
+    "the current ComfyUI native SAM3.1 multiplex checkpoint for experimental two- or three-person shot-local tracking; model weights are not bundled",
+    "onnxruntime plus the pinned local deepghs anime-face v1.4 nano ONNX file for the optional anime-only EXP detector; no runtime download",
+    "ultralytics with a user-supplied locally licensed compatible face detector for the optional legacy Face Refine route; manual ROI remains dependency-free"
+  ],
+  "trt_vae_release": {
+    "version": "1.78.0",
+    "status": "reviewed_optional_exp_release",
+    "user_feedback": "没问题，完成吧，推送github",
+    "review_id": "17e7aedbfed663c18932f9dd56c15038",
+    "scope": "Overall acceptance of the combined8short-video-pair and static-text review; no per-item numeric scores inferred.",
+    "nodes": 4,
+    "workflows": 5,
+    "long_video_validation": "cancelled_by_user_not_qualified",
+    "performance": "No measured total output-stage benefit: native30.54s versusTRT31.33s including loading/decoding/saving; excludes sampling.",
+    "runtime": "Optional TensorRT cu13 10.13.3.9.post1 in an isolated directory; locally compiled engines; no binaries/models redistributed."
+  }
+}

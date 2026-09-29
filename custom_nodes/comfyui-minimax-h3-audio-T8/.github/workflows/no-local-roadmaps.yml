@@ -1,0 +1,13 @@
+name: Reject local roadmap files
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  roadmap-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - run: python3 tools/check_no_roadmap.py --history HEAD
+      - run: python3 tools/test_no_roadmap_guard.py

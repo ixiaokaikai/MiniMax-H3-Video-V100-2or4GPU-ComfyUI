@@ -1,0 +1,33 @@
+name: Publish to Comfy Registry
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "pyproject.toml"
+
+jobs:
+  publish-node:
+    name: Publish Custom Node to Registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Refuse local roadmap files before packaging or upload
+        run: python3 tools/check_no_roadmap.py --history HEAD
+      - name: Verify synchronized release version
+        run: python3 tools/prepare_release_version.py --check
+      - name: Publish custom node
+        uses: Comfy-Org/publish-node-action@main
+        with:
+          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+      - name: Require the published version to be active and installable
+        run: >-
+          python3 tools/verify_registry_publish.py
+          --attempts 20
+          --interval-seconds 15
+          --timeout-seconds 20

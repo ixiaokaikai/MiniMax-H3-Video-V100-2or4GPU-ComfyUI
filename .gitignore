@@ -1,0 +1,15 @@
+# 安装产物
+ComfyUI/
+.venv/
+output/
+input/
+*.log
+comfyui_install_check.log
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# 系统
+.DS_Store
