@@ -11,13 +11,14 @@
 ## 速度参考（作者机器实测）
 
 硬件：4×V100-SXM2-16G（NVLink 全通）+ 64G 内存 + Ubuntu 24.04。
+基准口径：**「720p」= 按 0.4MP（864×480）生成，再空间放大到 1280×720 输出**（工作流默认档位；想直接把 #115 切 0.9MP 生成 720p 也可以，但显存和时间成本随分辨率上升）。
 
-| 模式 | 5 秒 / 720p（输出 1280×720） | 备注 |
+| 模式 | 5 秒 / 720p（输出 1280×720） | 说明 |
 |---|---|---|
-| **四卡** | **约 3 分 20 秒** | 全卡并行，最快 |
-| **两卡** | **约 7 分钟** | 只用 2 张卡，可与别的常驻 GPU 服务共存 |
+| **两卡（2×16G）** | **约 7 分钟** | 最低可行配置。本包自带**自动卸显存插件**：每次出片后自动杀掉 Ray worker、显存归还系统，双卡机可以和其他 GPU 服务共存 |
+| **四卡（4×16G）** | **约 3 分 20 秒** | 全卡并行，比两卡快约一倍 |
 
-其他口径：4 卡 480p(864×480)/2 秒/8 步 → 缩放 720p 约 66 秒。
+其他口径：四卡 0.4MP/2 秒/8 步 → 放大到 720p 约 66 秒。
 首次出片包含 Ray 集群启动 + FSDP 装载 20G 模型，比上表多 2~3 分钟（冷启动）；两卡模式每单跑完自动卸显存，下一单必然冷启动。
 你的卡型/内存不同会有差异，属正常。
 
@@ -148,12 +149,8 @@ minimax-h3-v100/
 **提示"缺少节点类型 / missing node type"**
 `custom_nodes` 里有某个包 import 报错。看 `comfyui.log`（工程根目录）里该包的报错行，一般是 Python 版本不是 3.12 或 `pip install -e custom_nodes/raylight` 没跑成功。重装：删掉 `ComfyUI` 和 `.venv` 重跑 `install.sh`。
 
-**国内下载模型慢 / 卡住**
-`HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh`；或装 aria2 走 16 连接。下载完核对文件大小（清单里标了）。
-
-**pip / GitHub 慢或连不上**
-- pip：`export PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/` 后再跑 `install.sh`（对所有 pip 生效）
-- GitHub（克隆 ComfyUI）：`GITHUB_MIRROR=https://ghproxy.net/ bash install/install.sh`（换任意可用的 GitHub 加速前缀）
+**模型下载中断 / 不完整**
+重跑下载命令会从断点续传；下载完核对文件大小（清单里标了每个的大小）。
 
 **怎么升级 / 重装**
 环境全部钉死版本，升级 = 重建：`rm -rf ComfyUI .venv` 后重跑 `install.sh`（模型不动，节点包和工作流会自动重新拷贝）。想换 ComfyUI 新版本：改 `install.sh` 里的 `COMFY_REV` 再重建，但**换版本前请确认核心补丁和新版兼容**（`install/patches/` 按 v0.37.0 生成）。

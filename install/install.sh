@@ -33,9 +33,8 @@ GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l | tr -d ' 
 [ "$GPU_COUNT" -ge 2 ] || die "需要 ≥2 张 NVIDIA GPU (当前检测到 $GPU_COUNT 张)。本项目面向 2卡/4卡 V100-16G"
 echo "检测到 $GPU_COUNT 张 NVIDIA GPU:"
 nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader
-NVLINK=$(nvidia-smi --query-gpu=nvlink.available_link_count --format=csv,noheader 2>/dev/null | awk '{s+=$1} END {print s+0}')
-if [ "$NVLINK" -gt 0 ]; then
-  log "检测到 NVLink (共 $NVLINK 条) — 多卡并行的推荐配置"
+if nvidia-smi nvlink -s 2>/dev/null | grep -q "Link"; then
+  log "检测到 NVLink — 多卡并行的推荐配置"
 else
   echo "⚠️  未检测到 NVLink：PCIe 也能跑，但多卡并行会明显变慢，推荐 SXM+NVLink 卡"
 fi
