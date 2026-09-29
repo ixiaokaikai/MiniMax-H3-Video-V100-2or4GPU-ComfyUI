@@ -17,6 +17,7 @@
 | comfyui-minimax-h3-audio-T8 | [T8mars/comfyui-minimax-h3-audio-T8](https://github.com/T8mars/comfyui-minimax-h3-audio-T8) | v1.81.0 (`1464a9f`) | GPL-3.0-or-later | H3 双时钟采样器、稀疏注意力补丁节点、音频节点 |
 | TE-Speed-MiniMaxH3-OSS | [HELPMEEADICE/TE-Speed-MiniMaxH3-OSS](https://github.com/HELPMEEADICE/TE-Speed-MiniMaxH3-OSS) | `c1dacf4` | LGPL-3.0 | TE 缓存加速节点 + 核心钩子补丁脚本（本工作流中已断开，保留备用） |
 | ComfyUI-MiniMaxH3-SolAttn-V100 | 作者维护的 V100 稀疏注意力插件（v1.2.0，MIT，2026-09-01 起上游暂停维护） | v1.2.0 | MIT | V100 注意力稀疏加速（本工作流中已断开，保留备用） |
+| ComfyUI-sol-attn | [Saganaki22/ComfyUI-sol-attn](https://github.com/Saganaki22/ComfyUI-sol-attn) | `930a4d6` (v0.6.2) | Apache-2.0 | H3 稀疏注意力调度补丁节点（`MiniMaxH3ScheduledSolAttentionPatch`，本工作流中已断开，保留备用） |
 | Comfyui_Minimax_h3_latent_Upscaler | [LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler](https://github.com/LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler) | master | MIT | latent 空间上采样节点 |
 
 ## 本仓库自研部分（MIT，见 LICENSE）
