@@ -33,7 +33,6 @@
 |---|---|---|
 | MiniMax H3 各权重（DiT/VAE/LoRA/embeddings） | [Comfy-Org/MiniMax-H3](https://huggingface.co/Comfy-Org/MiniMax-H3) | 见该仓库各文件说明 |
 | int4 文本编码器 | [Merserk/MiniMax-H3-INT4-ConvRot](https://huggingface.co/Merserk/MiniMax-H3-INT4-ConvRot) | 见该仓库说明 |
-| int8 编码器（可选） | [linjian257](https://huggingface.co/linjian257) | 见该仓库说明 |
 | latent 上采样模型（可选） | [LBH-123-AI/Minimax_h3_latent_Upscaler](https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler) | MIT |
 | RealESRGAN_x4plus（可选） | [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) | 见该仓库说明 |
 

@@ -1,0 +1,8 @@
+# 二进制文件防 git 文本化
+*.so binary
+*.pyd binary
+*.mp4 binary
+*.jpg binary
+*.png binary
+*.safetensors binary
+*.pth binary

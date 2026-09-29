@@ -26,10 +26,11 @@
 | 项 | 要求 | 说明 |
 |---|---|---|
 | GPU | **2 张或 4 张 V100-16G** | SXM + **NVLink** 强烈推荐（多卡并行的带宽基础）；PCIe 卡能跑但明显慢 |
+| 系统 | **Linux x86_64**（Ubuntu 22.04/24.04 最佳，作者实测 Ubuntu 24.04；Debian 12+ 等主流发行版均可） | 预编译扩展按 Linux x86_64 打包；**Windows/macOS 不支持** |
+| NVIDIA 驱动 | **≥525.60.13**（建议直接装最新版） | **不用装 CUDA 工具包**：torch cu128 自带运行时 |
 | 系统内存 | 两卡模式 **≥64G**（32G 勉强）；四卡模式 ≥48G | 两卡模式 FSDP 分片 + 编码器虚拟池走 CPU，约吃 30G |
-| 系统 | Ubuntu 22.04 / 24.04（Linux） | 预编译扩展按 Linux x86_64 打包 |
-| 驱动 | NVIDIA ≥550（CUDA 12.x） | torch 2.10+cu128 |
-| Python | **3.12**（必需） | 个别节点包预编译扩展仅 cp312 |
+| Python | **3.12**（必需） | 个别节点包预编译扩展仅 cp312；Ubuntu: `sudo apt install python3.12 python3.12-venv` |
+| 磁盘 | 环境约 8G + 必需模型 44G | 建议可用空间 **≥60G** |
 
 > 其他 16G 显存的卡（A100/A6000 等）大概率也能跑，但未在作者机器上验证，出问题请先查 ComfyUI/raylight 的 Issue。
 
@@ -37,12 +38,12 @@
 
 ```bash
 # 0) 拿到工程
-git clone <本仓库地址> && cd minimax-h3-v100
+git clone <本仓库地址> && cd minimax-h3-v100-multigpu
 
 # 1) 装环境（自动克隆 ComfyUI v0.37.0、建 venv、装 torch/依赖、拷节点包、打补丁、冒烟验证）
 bash install/install.sh
 
-# 2) 下载模型（必需 5 个约 44G；可选 3 个再加约 26G，断点续传）
+# 2) 下载模型（必需 5 个约 44G；可选 2 个再加约 0.8G，断点续传）
 bash install/download_models.sh            # 国内网络可加前缀:
 # HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh
 
@@ -52,8 +53,11 @@ bash scripts/start_comfyui_4gpu.sh         # 四卡机
 ```
 
 浏览器打开 `http://127.0.0.1:8188`（局域网 `http://<机器IP>:8188`），
-**Workflow → Open** 加载 `workflows/` 里对应卡数的工作流，改提示词，点 **Queue Prompt**。
+**Workflow → Open** 选对应卡数的工作流（安装时已自动注册进这个菜单），改提示词，点 **Queue Prompt**。
 模型只在点「生成」时才载入显存，启动阶段不占显存。
+
+> **English quick start** — Linux x86_64, 2 or 4 × V100-16G (NVLink recommended), NVIDIA driver ≥525.60.13, Python 3.12, ≥64G RAM for 2-GPU mode.
+> `git clone … → bash install/install.sh → bash install/download_models.sh (use HF_ENDPOINT=https://hf-mirror.com in CN) → bash scripts/start_comfyui_4gpu.sh (or 2gpu) → open http://127.0.0.1:8188`.
 
 ## 模型清单（仓库不带模型，首跑前必读）
 
@@ -67,13 +71,14 @@ bash scripts/start_comfyui_4gpu.sh         # 四卡机
 | `minimax_h3_audio_vae_fp32.safetensors`（音频 VAE） | 0.6G | `models/vae/` | Comfy-Org/MiniMax-H3 |
 | `minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors`（8 步 turbo LoRA） | 2G | `models/loras/` | Comfy-Org/MiniMax-H3 |
 
-可选 3 个（`download_models.sh --optional`，约 26G）：
+可选 2 个（`download_models.sh --optional`，约 0.8G）：
 
 | 模型 | 大小 | 用途 |
 |---|---|---|
-| `qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257.safetensors` | 25G | 把「文本编码器」开关切到 `true` 才用到（[linjian257](https://huggingface.co/linjian257) 的 int8 档） |
 | `minimax_h3_latent_upscaler_3d_fp16.safetensors` | 0.7G | latent 放大支路（[LBH-123-AI](https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler)） |
 | `RealESRGAN_x4plus.pth` | 64M | ESRGAN 图像空间超分支路 |
+
+> 文本编码器固定用 int4 省内存版（上面必需清单第 2 个），工作流里已接死，无需再选。
 
 > 各模型均从**官方/发布方链接**自行下载，遵循其各自的许可与使用条款。
 > 风格 embedding（`minimaxh3_*.safetensors`）可选，在 Comfy-Org/MiniMax-H3 的 `embeddings/` 目录。
@@ -92,7 +97,6 @@ bash scripts/start_comfyui_4gpu.sh         # 四卡机
 | 开关 | 默认 | 说明 |
 |---|---|---|
 | 加速开关 | `true` | true=8 步 turbo LoRA（快，推荐）/ false=官方 20 步（慢一倍以上，更稳） |
-| 文本编码器 | `false` | false=int4 省内存（默认）/ true=int8 档（需下载可选模型 6） |
 | 图1 开关 | `true` | 人物/身份参考图。**默认开着**，参考图放 `ComfyUI/input/ref_image_1.png`（仓库已带一张占位示例图）；不用参考图就关掉 |
 | 图2/3/4、音频1/2、视频1/2 开关 | `false` | 素材区点文件名换文件；关掉 = 完全不读文件、不花时间 |
 | 放大开关 | `false` | false=直出 / true=走 ESRGAN（需可选模型 8） |
@@ -146,6 +150,16 @@ minimax-h3-v100/
 
 **国内下载模型慢 / 卡住**
 `HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh`；或装 aria2 走 16 连接。下载完核对文件大小（清单里标了）。
+
+**pip / GitHub 慢或连不上**
+- pip：`export PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/` 后再跑 `install.sh`（对所有 pip 生效）
+- GitHub（克隆 ComfyUI）：`GITHUB_MIRROR=https://ghproxy.net/ bash install/install.sh`（换任意可用的 GitHub 加速前缀）
+
+**怎么升级 / 重装**
+环境全部钉死版本，升级 = 重建：`rm -rf ComfyUI .venv` 后重跑 `install.sh`（模型不动，节点包和工作流会自动重新拷贝）。想换 ComfyUI 新版本：改 `install.sh` 里的 `COMFY_REV` 再重建，但**换版本前请确认核心补丁和新版兼容**（`install/patches/` 按 v0.37.0 生成）。
+
+**卡数不是正好 2/4（比如 6 卡机 / 3 卡机）**
+能装。两卡模式默认用前 2 张卡，四卡模式默认用前 4 张；想指定哪几张卡：`export CUDA_VISIBLE_DEVICES=1,2`（或 `2,3,4,5`）再启动。
 
 **NVLink 没有会怎样**
 能跑（走 PCIe + NCCL），但四卡并行收益明显缩水，速度向两卡靠拢。SXM 版 V100 自带 NVLink，最省事。

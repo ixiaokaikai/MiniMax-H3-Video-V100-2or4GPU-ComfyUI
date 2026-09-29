@@ -5,7 +5,7 @@
 #
 #  用法:
 #    bash install/download_models.sh             # 必需 5 个 (约 44G)
-#    bash install/download_models.sh --optional  # 再加 3 个可选 (约 26G)
+#    bash install/download_models.sh --optional  # 再加 2 个可选 (约 0.8G)
 #
 #  网络环境连不上 huggingface.co 时 (如国内网络):
 #    HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh
@@ -61,11 +61,8 @@ fetch "$HF/Comfy-Org/MiniMax-H3/resolve/main/loras/minimax_h3_fl2v_turbo_8step_v
 if [ "$WITH_OPTIONAL" -eq 1 ]; then
   echo
   echo "============================================"
-  echo "  可选模型 (3 个, 约 26G)"
+  echo "  可选模型 (2 个, 约 0.8G)"
   echo "============================================"
-  fetch "$HF/linjian257/qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257/resolve/main/qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257.safetensors" \
-        "$COMFY/models/text_encoders/qwen3vl_32b_minimax_h3_int8_convrot_uncensored-by-linjian257.safetensors" \
-        "25G int8 编码器 (「文本编码器」开关切 true 才用到)"
   fetch "$HF/LBH-123-AI/Minimax_h3_latent_Upscaler/resolve/main/minimax_h3_latent_upscaler_3d_conv_v1/minimax_h3_latent_upscaler_3d_conv_v1_fp16.safetensors" \
         "$COMFY/models/latent_upscale_models/minimax_h3_latent_upscaler_3d_fp16.safetensors" \
         "0.7G 潜空间上采样 (latent 放大支路)"

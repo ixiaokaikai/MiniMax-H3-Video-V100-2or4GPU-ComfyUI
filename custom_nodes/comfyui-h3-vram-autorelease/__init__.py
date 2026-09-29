@@ -11,7 +11,7 @@ comfyui-h3-vram-autorelease
 - 卸 worker 后,ComfyUI 执行缓存里还留着死的 actor 句柄 → 下次跑会 RayActorError。
   所以同时把 RayLight 类节点的缓存条目清掉,下次强制重跑。
 
-生效条件:环境变量 H3_VRAM_AUTORELEASE=1(由「启动ComfyUI_2卡.sh」设置)。
+生效条件:环境变量 H3_VRAM_AUTORELEASE=1(由 scripts/start_comfyui_2gpu.sh 设置)。
 四卡模式不设这个变量,插件完全休眠,四卡版行为不变。
 
 代价:每次跑片多一次 Ray 重启 + 模型重载(约 +2~3 分钟)。换来每次跑片都从干净显存开始,
@@ -122,7 +122,7 @@ class H3VramReleaseProvider:
                 how = "主进程 ray 上下文已不存在(集群已整体拆除)"
         except Exception as e:
             how = f"ray 清理异常: {e}"
-        # 兜底: 按进程名清残留 (只认 ray::RayWorker, 不碰 NInfer 和别的进程)
+        # 兜底: 按进程名清残留 (只认 ray::RayWorker, 不碰其他常驻服务的进程)
         leftover = self._force_kill_leftover()
         if killed:
             print(f"[h3-vram-release] 已释放 {killed} 个 Ray worker,显存已归还(下次运行重新加载)", flush=True)
