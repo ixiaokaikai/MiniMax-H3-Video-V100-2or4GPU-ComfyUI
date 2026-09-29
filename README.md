@@ -1,5 +1,7 @@
 # MiniMax H3 视频生成 · V100 双卡/四卡 ComfyUI 工程
 
+**中文** | [**English**](README.en.md)
+
 一套**下载即用**的 ComfyUI 多卡环境：用 **2 张或 4 张 V100-16G** 跑 [MiniMax H3](https://huggingface.co/Comfy-Org/MiniMax-H3) 视频生成（参考图/视频/音频 → 带音频的视频，RayLight 序列并行 + FSDP 权重分片）。
 
 - 节点包全部捆绑在仓库里，**不用自己找、不用调**
@@ -45,7 +47,7 @@
 sudo apt install -y git patch python3.12 python3.12-venv     # python3.12-venv 别漏
 
 # 1) 拿工程
-git clone <本仓库地址> && cd minimax-h3-v100-multigpu
+git clone https://github.com/ixiaokaikai/MiniMax-H3-Video-V100-2or4GPU-ComfyUI.git && cd MiniMax-H3-Video-V100-2or4GPU-ComfyUI
 
 # 2) 装环境 + 下模型（一条命令；自动克隆 ComfyUI v0.37.0、建 venv、装 torch/依赖、
 #    拷节点包、打核心补丁、冒烟启动 + 40 种节点自检，然后下载必需模型）
@@ -143,7 +145,9 @@ bash scripts/start_comfyui_2gpu.sh     # 双卡机
 ## 目录结构
 
 ```
-minimax-h3-v100-multigpu/
+MiniMax-H3-Video-V100-2or4GPU-ComfyUI/
+├── README.md                   # 中文说明（首页）
+├── README.en.md                # English documentation
 ├── install/install.sh          # 一键装环境（含冒烟启动 + 40 种节点自检）
 ├── install/download_models.sh  # 一键下载模型（断点续传）
 ├── install/patches/            # ComfyUI 核心补丁（int8 反量化修复、TE-Speed 钩子）
