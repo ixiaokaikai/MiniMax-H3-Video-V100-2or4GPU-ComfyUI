@@ -17,7 +17,7 @@ A **ready-to-run** ComfyUI multi-GPU environment that runs [MiniMax H3](https://
 | GPU | **2 or 4 × V100-16G** | SXM + **NVLink** strongly recommended (multi-GPU bandwidth); PCIe cards work but the scaling gain drops sharply |
 | OS | **Linux x86_64** | Ubuntu 22.04 / 24.04 best (verified on 24.04); Debian 12+ and similar distros work. **No Windows / macOS** |
 | Driver | **NVIDIA ≥525.60.13** (latest recommended) | **No CUDA toolkit needed** — torch cu128 ships its own runtime |
-| RAM | 2-GPU mode **≥64G**; 4-GPU mode ≥48G | 2-GPU mode needs ~30G (FSDP shards + text-encoder virtual pool on CPU) |
+| RAM | **≥40G recommended** (same for 2- and 4-GPU) | Measured: 2-GPU mode peaks at ≈**35G** (≈31G while denoising, up to 35G during video decode); 4-GPU mode ≈22G loaded (shards spread over more cards). **Under 32G total** the kernel OOM-killer may kill it |
 | Python | **3.12** (required) | Some bundled node packs ship cp312-only prebuilt extensions |
 | Disk | ~8G environment + ~1G ComfyUI + 44G models | **≥70G** free recommended (system headroom included) |
 | Downloader | `aria2` optional | With it, model downloads use 16 connections (much faster); otherwise `wget` |
@@ -135,7 +135,7 @@ Measured on a **clean install, first render** (this repo's installer, Ubuntu 24.
 **While running**
 
 - **First render takes 2–3 min extra** (Ray cluster + 20G FSDP load). 2-GPU mode releases VRAM after each job, so *every* 2-GPU render is a cold start.
-- **RAM:** 2-GPU mode needs ~30G; with <32G available the kernel OOM-killer may kill it with no visible error — use more RAM or run 4-GPU mode (lighter). VRAM ceiling: ≈12G/16G per card in 2-GPU mode, ≈15G/16G in 4-GPU mode; both are by design.
+- **RAM:** 2-GPU mode measured peaks at ≈**35G** (≈31G denoising, up to 35G during video decode); 4-GPU mode ≈22G loaded. With **under 32G total** the kernel OOM-killer may kill it with no visible error — run 4-GPU mode if RAM is tight. VRAM ceiling: ≈12G/16G per card in 2-GPU mode, ≈15G/16G in 4-GPU mode; both are by design.
 - **Placeholder assets must exist even with their switches off** — deleting them fails prompt validation ("Invalid image/audio/video file"). Replace with your own files using the same names.
 - **Resolution and duration dominate cost.** Default = generate at 0.4MP then upscale; to generate 720p directly set `#115` to 0.9MP (or 0.98MP = official 768p). VRAM and time grow with resolution.
 - **"Missing node type" / red nodes in the UI:** run `bash scripts/check_nodes.sh` — it boots a temporary instance and checks all 40 node types used by the workflows, listing whatever is missing; details in `comfyui.log` at the project root.
