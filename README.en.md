@@ -19,8 +19,9 @@ A **ready-to-run** ComfyUI multi-GPU environment that runs [MiniMax H3](https://
 | Driver | **NVIDIA ≥525.60.13** (latest recommended) | **No CUDA toolkit needed** — torch cu128 ships its own runtime |
 | RAM | 2-GPU mode **≥64G**; 4-GPU mode ≥48G | 2-GPU mode needs ~30G (FSDP shards + text-encoder virtual pool on CPU) |
 | Python | **3.12** (required) | Some bundled node packs ship cp312-only prebuilt extensions |
-| Disk | ~8G for the environment + 44G for required models | **≥60G** free recommended |
+| Disk | ~8G environment + ~1G ComfyUI + 44G models | **≥70G** free recommended (system headroom included) |
 | Downloader | `aria2` optional | With it, model downloads use 16 connections (much faster); otherwise `wget` |
+| HF account | **Not needed** | None of the model repos are gated — no token, download directly |
 
 Other 16G cards (A100/A6000 etc.) will most likely work, but have not been verified on the author's machine.
 
@@ -53,9 +54,9 @@ git clone https://github.com/ixiaokaikai/MiniMax-H3-Video-V100-2or4GPU-ComfyUI.g
 #    builds a venv, installs torch/deps, copies node packs, applies core patches,
 #    smoke-tests the server + checks 40 node types, then downloads the required models)
 bash install/install.sh --with-models
-# Cannot reach huggingface.co from your network:
-#   HF_ENDPOINT=https://hf-mirror.com bash install/install.sh --with-models
 # Or run the two steps separately: bash install/install.sh  then  bash install/download_models.sh
+# The downloader verifies sha256 while downloading (manifest: install/model_checksums.txt);
+# to re-check models you already have: bash install/download_models.sh --verify
 
 # 3) Start
 bash scripts/start_comfyui_4gpu.sh     # 4-GPU machine
@@ -128,7 +129,7 @@ Measured on a **clean install, first render** (this repo's installer, Ubuntu 24.
 
 - **Only `int8_convrot` weights are supported** (`*_int8_convrot.safetensors`). The acceleration chain and core patches are tuned for **int8_convrot + ComfyUI v0.37.0**; fp8/bf16/GGUF weights are not guaranteed. Try those in a copy of the environment.
 - **Versions are pinned.** Upgrading = rebuilding: `rm -rf ComfyUI .venv` then re-run `install.sh` (models are kept; node packs and workflows are re-copied). To move to another ComfyUI version, change `COMFY_REV` in `install.sh`, but **first confirm the core patches in `install/patches/` still apply** (they were generated against v0.37.0).
-- **Networks:** if huggingface.co is unreachable use `HF_ENDPOINT=https://hf-mirror.com`; slow ComfyUI clone: `GITHUB_MIRROR=https://ghproxy.net/`; slow pip: `PIP_INDEX_URL=<mirror>/simple/` (the script falls back to official PyPI for packages your mirror lacks). Installing `aria2` speeds model downloads up a lot.
+- **If downloads stall, switch to a Chinese mirror** (optional; official sources are the default): models `HF_ENDPOINT=https://hf-mirror.com bash install/install.sh --with-models`; pip packages `PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ bash install/install.sh` (the script adds an official PyPI fallback for packages the mirror lacks). Installing `aria2` also speeds model downloads up.
 - **Minutes of silence during install is normal**: torch pulls ~4G of dependencies and pip's progress bar is not written into a redirected log. To confirm it is alive: `ps aux | grep pip`. Interrupted model downloads resume — just re-run.
 
 **While running**
@@ -140,13 +141,16 @@ Measured on a **clean install, first render** (this repo's installer, Ubuntu 24.
 - **"Missing node type" / red nodes in the UI:** run `bash scripts/check_nodes.sh` — it boots a temporary instance and checks all 40 node types used by the workflows, listing whatever is missing; details in `comfyui.log` at the project root.
 - **GPU count other than exactly 2 or 4** (3-card, 6-card, mixed display card): fine. The start script auto-selects usable GPUs (≥14G VRAM, compute capability ≥7.0); to pin them: `export CUDA_VISIBLE_DEVICES=1,2,3,4`.
 - **No NVLink still works** (PCIe + NCCL), but multi-GPU scaling drops noticeably and speed approaches 2-GPU figures.
+- **Ports and network**: the start script listens on `0.0.0.0` (so you can drive it from another machine's browser); the UI has no login, so do not port-forward 8188 to the internet. Local only: `H3_LISTEN=127.0.0.1 bash scripts/start_comfyui_4gpu.sh`.
+- Model weights are not in this repository; follow the publishers' licenses and terms. Third-party components are listed in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## Layout
 
 ```
 MiniMax-H3-Video-V100-2or4GPU-ComfyUI/
 ├── install/install.sh          # one-shot environment install (smoke test + 40-node check)
-├── install/download_models.sh  # one-shot model download (resumable)
+├── install/download_models.sh  # one-shot model download (resumable, sha256-verified)
+├── install/model_checksums.txt # sha256 + size manifest for the 7 model files
 ├── install/patches/            # ComfyUI core patches (int8 dequant fix, TE-Speed hook)
 ├── workflows/                  # 2-GPU / 4-GPU workflows
 ├── custom_nodes/               # all node packs (copied into ComfyUI at install time)
@@ -157,7 +161,3 @@ MiniMax-H3-Video-V100-2or4GPU-ComfyUI/
 
 After installation, ComfyUI itself lives in `ComfyUI/` (git clone, pinned to v0.37.0) and the virtualenv in `.venv/`.
 
-## Disclaimer
-
-- Model weights are not in this repository. Download them from the official links above and follow each publisher's license and terms of use; responsibility for generated content rests with the user.
-- Third-party node packs are bundled as-is, each with its own LICENSE — see [THIRD_PARTY.md](THIRD_PARTY.md).

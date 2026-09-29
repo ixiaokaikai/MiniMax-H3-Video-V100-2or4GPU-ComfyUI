@@ -16,9 +16,23 @@
 | ComfyUI-MultiGPU | [pollockjj/ComfyUI-MultiGPU](https://github.com/pollockjj/ComfyUI-MultiGPU) | 作者机实测副本 | GPL-3.0 | 多卡 CLIP 拆分加载（CLIPLoaderDisTorch2MultiGPU）等 |
 | comfyui-minimax-h3-audio-T8 | [T8mars/comfyui-minimax-h3-audio-T8](https://github.com/T8mars/comfyui-minimax-h3-audio-T8) | v1.81.0 (`1464a9f`) | GPL-3.0-or-later | H3 双时钟采样器、稀疏注意力补丁节点、音频节点 |
 | TE-Speed-MiniMaxH3-OSS | [HELPMEEADICE/TE-Speed-MiniMaxH3-OSS](https://github.com/HELPMEEADICE/TE-Speed-MiniMaxH3-OSS) | `c1dacf4` | LGPL-3.0 | TE 缓存加速节点 + 核心钩子补丁脚本（本工作流中已断开，保留备用） |
-| ComfyUI-MiniMaxH3-SolAttn-V100 | 作者维护的 V100 稀疏注意力插件（v1.2.0，MIT，2026-09-01 起上游暂停维护） | v1.2.0 | MIT | V100 注意力稀疏加速（本工作流中已断开，保留备用） |
+| ComfyUI-MiniMaxH3-SolAttn-V100 | 上游作者 `aaalll12322`（MIT，2026-09-01 起暂停维护） | v1.2.0 | MIT | V100 注意力稀疏加速（本工作流中已断开，保留备用） |
 | ComfyUI-sol-attn | [Saganaki22/ComfyUI-sol-attn](https://github.com/Saganaki22/ComfyUI-sol-attn) | `930a4d6` (v0.6.2) | Apache-2.0 | H3 稀疏注意力调度补丁节点（`MiniMaxH3ScheduledSolAttentionPatch`，本工作流中已断开，保留备用） |
 | Comfyui_Minimax_h3_latent_Upscaler | [LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler](https://github.com/LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler) | master | MIT | latent 空间上采样节点 |
+
+每个捆绑目录都带自己的 LICENSE 文件（`ComfyUI-MiniMaxH3-SolAttn-V100/licenses/` 里还有其二进制所依赖的 CUTLASS / BSD-3 条款）。
+
+### 预编译二进制（需要留意）
+
+`custom_nodes/ComfyUI-MiniMaxH3-SolAttn-V100/comfy_v100_solattn_cuda.cpython-312-x86_64-linux-gnu.so`
+是本仓库里唯一的预编译二进制（V100 稀疏注意力 CUDA 内核，上游未公开内核源码，因此只能按原样捆绑）。它**只支持 Linux x86_64 + Python 3.12**（仓库已删掉随包附带的 Windows 版 `.pyd`）。核对与自检方式：
+
+```bash
+sha256sum custom_nodes/ComfyUI-MiniMaxH3-SolAttn-V100/comfy_v100_solattn_cuda.cpython-312-x86_64-linux-gnu.so
+# 期望 cbcafb46b1dfb1540eb1ef365cd44e4184423f76c8a82cd8000069539127581c
+# 该文件不参与本项目核心出片链路（对应节点在工作流里是断开状态）；介意二进制可整个删掉该目录，出片不受影响
+```
+
 
 ## 本仓库自研部分（MIT，见 LICENSE）
 
@@ -38,3 +52,9 @@
 | RealESRGAN_x4plus（可选） | [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) | 见该仓库说明 |
 
 > 各第三方组件以其仓库当前 LICENSE 文件为准；模型以各发布方页面条款为准。
+
+## 许可与再分发要点
+
+- **模型**：`Comfy-Org/MiniMax-H3`、`Merserk/MiniMax-H3-INT4-ConvRot` 在 Hugging Face 上的标签是 `license: other`（发布方自定义许可），不是 MIT/Apache；权重不进本仓库，使用时以模型页原始条款为准。
+- **copyleft 组件**：ComfyUI 本体 GPL-3.0，`ComfyUI-MultiGPU` GPL-3.0，`comfyui-minimax-h3-audio-T8` GPL-3.0-or-later —— 本仓库按原样保留其源码与 LICENSE。本仓库不预打包安装产物（`install.sh` 现场克隆 ComfyUI），因此以本仓库形态分发不产生额外义务；若二次分发"已装好"的整套环境，需自行履行 GPL 源码提供义务。
+- **预编译二进制**：仅 `ComfyUI-MiniMaxH3-SolAttn-V100` 的 `.so`（上游未公开源码，已给 sha256，且不在核心出片链路，可删）。

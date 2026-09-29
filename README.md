@@ -16,11 +16,12 @@
 |---|---|---|
 | GPU | **2 张或 4 张 V100-16G** | SXM + **NVLink** 强烈推荐（多卡带宽基础）；PCIe 卡能跑但多卡收益明显缩水 |
 | 系统 | **Linux x86_64** | Ubuntu 22.04 / 24.04 最佳（实测 Ubuntu 24.04），Debian 12+ 等主流发行版均可；**不支持 Windows / macOS** |
-| 驱动 | **NVIDIA ≥525.60.13**（建议最新版） | **不用装 CUDA 工具包**，torch cu128 自带运行时 |
+| 驱动 | **NVIDIA ≥525.60.13**（建议最新版；作者机实测 **580.173.02**） | **不用装 CUDA 工具包**，torch cu128 自带运行时；更旧或非常规的驱动组合未验证 |
 | 内存 | 双卡模式 **≥64G**；四卡模式 ≥48G | 双卡模式 FSDP 分片 + 编码器虚拟池走 CPU，约吃 30G |
 | Python | **3.12**（必需） | 部分节点包的预编译扩展只支持 cp312 |
-| 磁盘 | 环境约 8G + 必需模型 44G | 建议可用空间 **≥60G** |
+| 磁盘 | 环境约 8G + ComfyUI 约 1G + 必需模型 44G | 建议可用空间 **≥70G**（含系统余量） |
 | 下载工具 | `aria2` 可选 | 装了会用 16 连接下载（快很多）；没有则用 `wget` 单连接 |
+| HF 账号 | **不需要** | 用到的模型仓库都不是 gated，无需 Token，直接下 |
 
 其他 16G 显存卡型（A100/A6000 等）大概率也能跑，但未在本机验证过。
 
@@ -52,9 +53,9 @@ git clone https://github.com/ixiaokaikai/MiniMax-H3-Video-V100-2or4GPU-ComfyUI.g
 # 2) 装环境 + 下模型（一条命令；自动克隆 ComfyUI v0.37.0、建 venv、装 torch/依赖、
 #    拷节点包、打核心补丁、冒烟启动 + 40 种节点自检，然后下载必需模型）
 bash install/install.sh --with-models
-# 国内网络连不上 huggingface.co 时:
-#   HF_ENDPOINT=https://hf-mirror.com bash install/install.sh --with-models
 # 也可以分开跑: bash install/install.sh   然后   bash install/download_models.sh
+# 下载脚本会边下边核对 sha256（清单 install/model_checksums.txt），
+# 想复查已下载的模型: bash install/download_models.sh --verify
 
 # 3) 启动
 bash scripts/start_comfyui_4gpu.sh     # 四卡机
@@ -129,7 +130,7 @@ bash scripts/start_comfyui_2gpu.sh     # 双卡机
 
 - **权重类型只能用 int8_convrot**（`*_int8_convrot.safetensors`）。本工程的加速链 + 核心补丁都是按 **int8_convrot + ComfyUI v0.37.0** 调的，换成 fp8/bf16/GGUF 权重不保证能跑；想换，请先在副本环境里试。
 - **环境钉死版本**，升级 = 重建：`rm -rf ComfyUI .venv` 后重跑 `install.sh`（模型不用重下，节点包和工作流会自动重新拷）。想换 ComfyUI 版本要改 `install.sh` 里的 `COMFY_REV`，但**先确认 `install/patches/` 里的核心补丁与新版本兼容**（补丁按 v0.37.0 生成）。
-- **网络**：连不上 huggingface.co 时加 `HF_ENDPOINT=https://hf-mirror.com`；ComfyUI 克隆慢可加 `GITHUB_MIRROR=https://ghproxy.net/`；pip 慢可设 `PIP_INDEX_URL=<你的源>/simple/`（设了国内源时脚本会自动用官方 PyPI 兜底取缺的包）。装 `aria2` 下载模型会快很多。
+- **下载不动就换国内镜像源**（可选；不设就走官方源）：模型 `HF_ENDPOINT=https://hf-mirror.com bash install/install.sh --with-models`；pip 依赖 `PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ bash install/install.sh`（脚本会自动加官方 PyPI 兜底补缺的包）。装 `aria2` 下载模型也会快很多。
 - **装的时候日志几分钟没动静是正常的**：装 torch 要下约 4G 依赖，pip 进度条写不进重定向的日志。想确认还在干活：`ps aux | grep pip`。模型下载中断直接重跑，会断点续传。
 
 **跑的时候**
@@ -141,6 +142,8 @@ bash scripts/start_comfyui_2gpu.sh     # 双卡机
 - **网页上出现"缺失节点类型 / 红框"**：先跑 `bash scripts/check_nodes.sh`，它会起一个临时实例逐个核对工作流用到的 40 种节点，缺哪个直接列出来；报错细节看工程根目录的 `comfyui.log`。
 - **卡数不是正好 2 或 4**（3 卡机 / 6 卡机 / 混插亮机卡）：能装。启动脚本自动挑可用卡（显存 ≥14G 且算力 ≥7.0）；想指定就 `export CUDA_VISIBLE_DEVICES=1,2,3,4` 再启动。
 - **没有 NVLink 也能跑**（走 PCIe + NCCL），但多卡并行收益明显缩水，速度会向双卡靠拢。
+- **端口与网络**：启动脚本监听 `0.0.0.0`（方便你在别的机器上用浏览器打开）；界面本身没有登录，所以别把 8188 映射/转发到公网。只想本机访问：`H3_LISTEN=127.0.0.1 bash scripts/start_comfyui_4gpu.sh`。
+- 模型权重不在仓库里，使用时遵守发布方的许可与条款；第三方组件清单见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
 ## 目录结构
 
@@ -149,7 +152,8 @@ MiniMax-H3-Video-V100-2or4GPU-ComfyUI/
 ├── README.md                   # 中文说明（首页）
 ├── README.en.md                # English documentation
 ├── install/install.sh          # 一键装环境（含冒烟启动 + 40 种节点自检）
-├── install/download_models.sh  # 一键下载模型（断点续传）
+├── install/download_models.sh  # 一键下载模型（断点续传 + 下完自动核对 sha256；--verify 复查）
+├── install/model_checksums.txt # 7 个模型的 sha256 + 字节数校验清单
 ├── install/patches/            # ComfyUI 核心补丁（int8 反量化修复、TE-Speed 钩子）
 ├── workflows/                  # 双卡 / 四卡 工作流
 ├── custom_nodes/               # 全部节点包（install 时拷入 ComfyUI）
@@ -159,8 +163,3 @@ MiniMax-H3-Video-V100-2or4GPU-ComfyUI/
 ```
 
 安装后 ComfyUI 本体在 `ComfyUI/`（git 克隆，钉死 v0.37.0），虚拟环境在 `.venv/`。
-
-## 免责声明
-
-- 模型权重不在本仓库，请从上述官方链接自行下载，并遵守各发布方的许可与使用条款；生成内容的合规性由使用者负责。
-- 第三方节点包按原样捆绑（含各自 LICENSE），清单见 [THIRD_PARTY.md](THIRD_PARTY.md)。

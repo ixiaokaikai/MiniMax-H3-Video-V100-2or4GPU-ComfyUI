@@ -52,11 +52,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-fetch_object_info() {   # $1=base url → 打印节点表 JSON 到 stdout (绕开代理设置)
+fetch_object_info() {   # $1=base url → 打印节点表 JSON 到 stdout (本机直连)
   "$PYBIN" - "$1" <<'PY'
 import sys, urllib.request
 base = sys.argv[1].rstrip("/")
-opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))   # 不理会 http_proxy, 本机服务直连
+opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))   # 本机服务直连, 不受环境网络设置影响
 for path in ("/object_info", "/api/object_info"):
     try:
         with opener.open(base + path, timeout=30) as r:

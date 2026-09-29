@@ -1,0 +1,18 @@
+# 模型文件校验清单 (sha256 + 字节数), 由 install/download_models.sh 使用
+#   bash install/download_models.sh           # 下载; 下完自动核对
+#   bash install/download_models.sh --verify  # 只核对已下载的文件 (含大文件完整 sha256)
+#
+# 格式: <sha256>  <字节数>  <相对 ComfyUI/models 的路径>
+#
+# 来源说明: 这些 sha256 取自作者机上"实测能出片"的同一批文件, 并经 Hugging Face 官方 API
+#           的 LFS oid 逐一比对一致 (前 6 行; RealESRGAN 官方只公布文件大小, 未公布 sha256,
+#           其字节数与官方 release 资产一致)。
+# 用途: 检测下载不完整 / 传输损坏 / 被替换 (内容一致则哈希一致, 与下载来源无关)。
+
+9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779  20970379616  diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors
+4389571ab5db4180bcae33d13d07855319530f60a85ab0f1061379401a8ef66c  14952506624  text_encoders/qwen3vl_32b_minimax_h3_int4_convrot.safetensors
+7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522  5207808496   vae/minimax_h3_video_vae_fp16.safetensors
+8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48  605254808    vae/minimax_h3_audio_vae_fp32.safetensors
+2339acdf19bfe123f46b971ea35d367a84adb85de43627e1eceafa5a5b2b111e  1956193000   loras/minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors
+043e5a48e161610ef6c3ea974645220354d06fa618abca15f76d084812eb55c2  690592672    latent_upscale_models/minimax_h3_latent_upscaler_3d_fp16.safetensors
+4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1  67040989     upscale_models/RealESRGAN_x4plus.pth

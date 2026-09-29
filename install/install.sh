@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ============================================================
 #  MiniMax H3 2/4卡 V100 ComfyUI 环境 — 一键安装
-#  用法: bash install/install.sh [--skip-verify]
+#  用法: bash install/install.sh [--skip-verify] [--with-models]
 #
-#  网络慢/被墙时可设环境变量(都可选):
-#    GITHUB_MIRROR=https://ghproxy.net/   bash install/install.sh   # ComfyUI 走 GitHub 加速前缀
-#    PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ ...      # pip 走国内源
+#  下载不动 / 太慢时, 可切换国内镜像源(都可选, 不设就走官方源):
+#    HF_ENDPOINT=https://hf-mirror.com                      # Hugging Face 镜像源(模型)
+#    PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/   # PyPI 镜像源(依赖包)
 # ============================================================
 set -euo pipefail
 
@@ -14,7 +14,7 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMFY="$ROOT/ComfyUI"
 VENV="$ROOT/.venv"
 COMFY_REV="73c9bad4d21e7addbe1d13bc92eee0f1431b017d"   # ComfyUI v0.37.0 (本项目实测版本)
-GITHUB="${GITHUB_MIRROR:-https://github.com}"
+GITHUB="https://github.com"
 
 SKIP_VERIFY=0
 WITH_MODELS=0
@@ -93,8 +93,8 @@ if [ ! -x "$VENV/bin/python" ]; then
   python3.12 -m venv "$VENV"
 fi
 PIP="$VENV/bin/pip"
-# 若用户指定了国内 pip 镜像( PIP_INDEX_URL ), 再加官方 PyPI 作兜底:
-# 实测 aliyun/清华等镜像缺 comfyui-frontend-package (ComfyUI 必需包), 单索引会直接安装失败
+# 若指定了国内 PyPI 镜像源( PIP_INDEX_URL ), 再加官方 PyPI 兜底:
+# (实测 aliyun/清华等镜像缺 comfyui-frontend-package 这个 ComfyUI 必需包, 单索引会安装失败)
 PIP_FALLBACK=()
 if [ -n "${PIP_INDEX_URL:-}" ]; then
   PIP_FALLBACK=(--extra-index-url "https://pypi.org/simple")
@@ -178,7 +178,7 @@ if [ "$SKIP_VERIFY" -eq 0 ]; then
     sleep 2
     if "$VENV/bin/python" - "$PORT" <<'PYEOF' 2>/dev/null
 import sys, urllib.request
-o = urllib.request.build_opener(urllib.request.ProxyHandler({}))   # 绕开代理设置, 本机服务直连
+o = urllib.request.build_opener(urllib.request.ProxyHandler({}))   # 本机服务直连, 不受环境网络设置影响
 try:
     with o.open("http://127.0.0.1:%s/object_info" % sys.argv[1], timeout=5) as r:
         sys.exit(0 if r.status == 200 else 1)
@@ -221,7 +221,7 @@ echo
 echo "下一步:"
 if [ "$WITH_MODELS" -eq 0 ]; then
   echo "  1. bash install/download_models.sh     # 下载模型 (必需 5 个约 44G; --optional 再加约 0.8G)"
-  echo "     国内网络: HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh"
+  echo "     下载不动可换国内镜像源: HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh"
 fi
 echo "  启动四卡: bash scripts/start_comfyui_4gpu.sh"
 echo "  启动双卡: bash scripts/start_comfyui_2gpu.sh"

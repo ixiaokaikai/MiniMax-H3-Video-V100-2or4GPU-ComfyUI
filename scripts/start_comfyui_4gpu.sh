@@ -71,8 +71,14 @@ done
 # --fp16-vae:  fp16 解码比 fp32 快约 4 倍 (≤1K 安全); 2K 以上大图要最稳就 export VAE_MODE=fp32
 VAE_MODE="${VAE_MODE:-fp16}"
 
-echo "启动 ComfyUI (四卡, CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES)..."
-nohup "$PY" "$MAIN" --listen 0.0.0.0 --port 8188 --disable-smart-memory --fp16-unet --${VAE_MODE}-vae > "$LOG" 2>&1 &
+# 监听地址: 默认 0.0.0.0 (方便从别的机器用浏览器); 只本机用就 export H3_LISTEN=127.0.0.1
+LISTEN_ADDR="${H3_LISTEN:-0.0.0.0}"
+echo "启动 ComfyUI (四卡, CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES, 监听 $LISTEN_ADDR)..."
+if [ "$LISTEN_ADDR" = "0.0.0.0" ]; then
+  echo "⚠️  ComfyUI 没有任何登录鉴权: 监听 0.0.0.0 时同一内网里任何人都能打开界面、提交任务(并借此在你机器上执行节点)。"
+  echo "    只在可信内网使用, 不要做端口转发暴露到公网; 只想本机访问: H3_LISTEN=127.0.0.1 bash scripts/start_comfyui_4gpu.sh"
+fi
+nohup "$PY" "$MAIN" --listen "$LISTEN_ADDR" --port 8188 --disable-smart-memory --fp16-unet --${VAE_MODE}-vae > "$LOG" 2>&1 &
 PID=$!
 echo "  PID: $PID   日志: $LOG"
 echo "等待就绪 (首次加载节点约 30~60 秒)..."
@@ -83,7 +89,7 @@ for i in $(seq 1 45); do
     echo
     echo "✅ ComfyUI 已就绪"
     echo "   本机:   $URL"
-    echo "   局域网: http://<本机IP>:8188"
+    [ "$LISTEN_ADDR" = "0.0.0.0" ] && echo "   局域网: http://<本机IP>:8188"
     echo
     echo "   加载 workflows/H3-全能版本_四卡Ray版_v1.json 即可出片。"
     echo "   模型只在点「生成」时才载入显存, 启动阶段不占显存。"

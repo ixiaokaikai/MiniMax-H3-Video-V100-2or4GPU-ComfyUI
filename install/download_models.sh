@@ -6,8 +6,9 @@
 #  用法:
 #    bash install/download_models.sh             # 必需 5 个 (约 44G)
 #    bash install/download_models.sh --optional  # 再加 2 个可选 (约 0.8G)
+#    bash install/download_models.sh --verify    # 只核对已下载文件的 sha256 (不下载)
 #
-#  网络环境连不上 huggingface.co 时 (如国内网络):
+#  下载不动 / 太慢时可换国内镜像源(可选):
 #    HF_ENDPOINT=https://hf-mirror.com bash install/download_models.sh
 # ============================================================
 set -euo pipefail
@@ -17,9 +18,76 @@ COMFY="$ROOT/ComfyUI"
 HF="${HF_ENDPOINT:-https://huggingface.co}"
 
 WITH_OPTIONAL=0
-[ "${1:-}" = "--optional" ] && WITH_OPTIONAL=1
+MODE="download"
+for a in "$@"; do
+  case "$a" in
+    --optional) WITH_OPTIONAL=1 ;;
+    --verify)   MODE="verify" ;;
+    *) echo "❌ 未知参数: $a"; exit 1 ;;
+  esac
+done
+
+MANIFEST="$SCRIPT_DIR/model_checksums.txt"
+
+size_of() { # 兼容 GNU/BSD stat
+  stat -Lc %s "$1" 2>/dev/null || stat -f %z "$1"
+}
+expect_of() { # $1=相对 ComfyUI/models 的路径 -> "sha256 字节数"
+  awk -v p="$1" '$1 ~ /^[0-9a-f]{64}$/ && $3 == p {print $1" "$2; exit}' "$MANIFEST"
+}
+verify_sha256() { # $1=文件; 返回 0 通过 / 1 失败(缺清单则跳过)
+  local f="$1" rel="${1#"$COMFY/models/"}" spec h sz real
+  spec="$(expect_of "$rel")"
+  [ -n "$spec" ] || { echo "  ⚠️  清单里没有 $(basename "$f"), 跳过校验"; return 0; }
+  h="${spec% *}"; sz="${spec#* }"
+  real="$(size_of "$f")"
+  [ "$real" = "$sz" ] || { echo "  ❌ 大小不符: 实际 $real, 期望 $sz (下载不完整?)"; return 1; }
+  echo "  🔒 核对 $(basename "$f") 的 sha256 ($(du -h "$f" | cut -f1))..."
+  if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$h" ]; then
+    echo "  ✅ sha256 一致"
+    return 0
+  fi
+  echo "  ❌ sha256 不一致: 文件损坏或被替换"
+  return 1
+}
 
 [ -d "$COMFY" ] || { echo "❌ 先运行 bash install/install.sh"; exit 1; }
+
+if [ "$MODE" = "verify" ]; then
+  echo "=============================================="
+  echo "  核对已下载模型的 sha256 (清单: install/model_checksums.txt)"
+  echo "=============================================="
+  [ -f "$MANIFEST" ] || { echo "❌ 找不到清单 $MANIFEST"; exit 1; }
+  bad=0; miss=0
+  while read -r h sz rel; do
+    [ -n "${h:-}" ] || continue
+    case "$h" in \#*) continue ;; esac
+    f="$COMFY/models/$rel"
+    if [ ! -f "$f" ]; then
+      echo "  ⚪ 未下载: $rel"
+      miss=$((miss + 1))
+      continue
+    fi
+    if [ "$(size_of "$f")" != "$sz" ]; then
+      echo "  ❌ 大小不符: $rel (实际 $(size_of "$f"), 期望 $sz)"
+      bad=$((bad + 1))
+      continue
+    fi
+    if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$h" ]; then
+      echo "  ✅ $rel"
+    else
+      echo "  ❌ sha256 不一致: $rel"
+      bad=$((bad + 1))
+    fi
+  done < "$MANIFEST"
+  echo
+  if [ "$bad" -eq 0 ]; then
+    echo "✅ 已下载的模型全部通过校验 (未下载 $miss 个)"
+    exit 0
+  fi
+  echo "❌ 有 $bad 个文件校验失败: 删掉它们再运行下载脚本即可重下"
+  exit 1
+fi
 
 # 优先 aria2c 16 连接，否则 wget 单连接
 if command -v aria2c >/dev/null; then
@@ -34,9 +102,19 @@ fi
 fetch() { # $1=URL  $2=目标文件  $3=说明
   local dir; dir="$(dirname "$2")"
   mkdir -p "$dir"
-  if [ -f "$2" ]; then echo "  ⏭  已存在，跳过: $(basename "$2")"; return 0; fi
+  if [ -f "$2" ]; then
+    echo "  ⏭  已存在，跳过: $(basename "$2") ($(du -h "$2" | cut -f1))"
+    local rel="${2#"$COMFY/models/"}" spec
+    spec="$(expect_of "$rel")"
+    if [ -n "$spec" ] && [ "$(size_of "$2")" != "${spec#* }" ]; then
+      echo "     ❌ 大小与清单不符 → 判定为下载不完整, 已删除, 请重新运行本脚本"
+      rm -f "$2"; exit 1
+    fi
+    return 0
+  fi
   echo "  ↓  $(basename "$2")  ($3)"
   dl "$1" "$2"
+  verify_sha256 "$2" || { echo "     → 已删除该文件, 请重新运行本脚本 (会重新下载)"; rm -f "$2"; exit 1; }
 }
 
 echo "============================================"
